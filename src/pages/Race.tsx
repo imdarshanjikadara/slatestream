@@ -4,6 +4,7 @@ import { useReplay } from "@/lib/replay";
 import { Card, ErrorState, Loading, Notice, PageHeader } from "@/components/common";
 import { PlayerBar, ViewerPicker } from "@/components/Replay";
 import { Pill } from "@/components/Pill";
+import { HowTo, Steps, Term } from "@/components/Help";
 
 export default function Race() {
   const site = useSite();
@@ -22,6 +23,14 @@ export default function Race() {
       <PageHeader title="Watch-time race" subtitle="Each lane is the same recorded viewer served by a different recommender. The marker moves with every unit of time watched; the thin bar under it is the time budget left. The session ends when the budget runs out.">
         <ViewerPicker seeds={site.data.trace_seeds} caseSeed={site.data.case_study_seed} />
       </PageHeader>
+      <HowTo id="race">
+        <Steps items={[
+          <>Each lane is the <b className="font-medium text-ink">same viewer</b> served by a different recommender.</>,
+          <>The dot moves right with every unit of <Term id="watch">watch time</Term>. The thin grey bar is the <Term id="budget">time budget</Term> left.</>,
+          <>Press <b className="font-medium text-ink">Play</b>. The line under each lane says what the viewer is doing.</>,
+          <>At the end the finishing order appears. Try other viewers with the arrows: the winner changes, the averages do not.</>,
+        ]} />
+      </HowTo>
       <Card title="Lanes" count={`${AGENTS.length} recommenders`} bodyClass="">
         <ul className="divide-y divide-line">
           {ss.map(({ a, e }) => {

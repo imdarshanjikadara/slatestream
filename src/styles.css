@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
-/* Design tokens: slate for the sidebar, teal for primary actions, selection, the data under study,
-   progress and focus; cool greys for everything else. */
+/* Design tokens: navy for the sidebar and primary actions, blue for the data under study and progress,
+   light blue for selection, cool greys for everything else. */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --color-brand: #0f1720;          /* slate: sidebar (the logo sits on it) */
-  --color-brand-dark: #0a1017;
-  --color-primary: #0f766e;           /* teal: primary buttons, selection */
-  --color-primary-hover: #115e59;
-  --color-primary-line: #0d5f58;
+  --color-brand: #0b1f3f;          /* navy: sidebar (the logo sits on it) */
+  --color-brand-dark: #081730;
+  --color-primary: #1e3a8a;           /* navy: primary buttons, selection */
+  --color-primary-hover: #172f70;
+  --color-primary-line: #172f70;
   --color-on-primary: #ffffff;        /* text on the primary colour */
-  --color-data: #0d9488;         /* teal: data under study, progress */
-  --color-accent: #0f766e;
-  --color-accent-soft: #effaf8;    /* selected row, current item */
-  --color-accent-line: #b5e6df;
-  --color-hover-row: #f3f6f8;      /* row under the pointer */
-  --color-editing: #d9f2ee;        /* the row being edited: clearly darker than hover and selection */
+  --color-data: #1d4ed8;         /* blue: data under study, progress */
+  --color-accent: #1e3a8a;
+  --color-accent-soft: #eef3fe;    /* selected row, current item */
+  --color-accent-line: #cddbfd;
+  --color-hover-row: #f3f6fb;      /* row under the pointer */
+  --color-editing: #dbe6fd;        /* the row being edited: clearly darker than hover and selection */
 
-  --color-canvas: #f5f6f8;
+  --color-canvas: #f4f6fa;
   --color-surface: #ffffff;
   --color-surface-alt: #f9fafb;
   --color-line: #e7e9ee;
@@ -28,8 +28,8 @@
   --color-faint: #6b7280;
   --color-line-hover: #9ca3af;
   --color-hover: #f3f4f6;
-  --color-track: #eef0f3;
-  --color-focus: #0f766e;          /* teal focus ring */
+  --color-track: #e8edf5;
+  --color-focus: #1e40af;          /* navy focus ring */
 
   --color-success: #047857;  --color-success-fill: #10b981;  --color-success-soft: #ecfdf5;  --color-success-line: #a7f3d0;
   --color-warning: #92400e;  --color-warning-fill: #f59e0b;  --color-warning-soft: #fffbeb;  --color-warning-line: #fde68a;

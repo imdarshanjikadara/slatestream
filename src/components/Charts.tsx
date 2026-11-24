@@ -1,4 +1,4 @@
-// Small dependency-free charts: teal for the data under study, neutrals for the rest, hairline grid, a hover readout.
+// Small dependency-free charts: blue for the data under study, neutrals for the rest, hairline grid, a hover readout.
 import { useEffect, useRef, useState } from "react";
 import { sgn } from "@/lib/data";
 

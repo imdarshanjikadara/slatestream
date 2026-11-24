@@ -4,11 +4,12 @@ import { AGENTS, COLOR, NAME, fmt, sgn, topicName, useSite, useTraces, type Sess
 import { useReplay } from "@/lib/replay";
 import { ErrorState, Loading, PageHeader, Tabs } from "@/components/common";
 import { PlayerBar, ViewerPicker } from "@/components/Replay";
+import { HowTo, Steps, Term } from "@/components/Help";
 
-// Diverging scale: grey-blue (dislike) through near-white to teal (like).
+// Diverging scale: grey-blue (dislike) through near-white to blue (like).
 function color(v: number): [number, number, number] {
   const t = Math.max(-1, Math.min(1, v));
-  const mid = [249, 250, 251], pos = [13, 148, 136], neg = [71, 85, 105];
+  const mid = [249, 250, 251], pos = [29, 78, 216], neg = [148, 113, 70];
   const to = t >= 0 ? pos : neg, a = Math.abs(t);
   return [0, 1, 2].map((k) => mid[k] + (to[k] - mid[k]) * a) as [number, number, number];
 }
@@ -27,9 +28,17 @@ export default function Taste() {
   const val = (e: Session, x: number, y: number) => (mode === "abs" ? e.interests[x][y] : (e.interests[x][y] - e.interests[0][y]) / D);
   return (
     <div className="page">
-      <PageHeader title="Taste profile" subtitle="Rows are the 20 topics, columns are steps of the session. Teal means the viewer likes the topic, slate grey that they dislike it. Dots mark the topic watched at each step. What a recommender shows slowly changes what the viewer likes.">
+      <PageHeader title="Taste profile" subtitle="Rows are the 20 topics, columns are steps of the session. Blue means the viewer likes the topic, brown that they dislike it. Dots mark the topic watched at each step. What a recommender shows slowly changes what the viewer likes.">
         <ViewerPicker seeds={site.data.trace_seeds} caseSeed={site.data.case_study_seed} />
       </PageHeader>
+      <HowTo id="taste">
+        <Steps items={[
+          <>Each picture is one recommender. <b className="font-medium text-ink">Rows</b> are the 20 topics, <b className="font-medium text-ink">columns</b> are steps, left to right.</>,
+          <>Colour is the viewer's <Term id="taste">taste</Term>: blue likes, brown dislikes, white neutral.</>,
+          <>Dark dots mark the topic watched at each step. Watching a topic slowly changes the taste for it.</>,
+          <>Switch to <b className="font-medium text-ink">Change since step 1</b> to see small changes clearly, then press Play.</>,
+        ]} />
+      </HowTo>
       <div className="flex flex-wrap items-center gap-3">
         <Tabs ariaLabel="Show" active={mode} onChange={(k) => setMode(k as "abs" | "delta")} items={[{ key: "abs", label: "Taste level" }, { key: "delta", label: "Change since step 1" }]} />
         <div className="flex items-center gap-2 text-[12px] text-faint">
@@ -54,7 +63,7 @@ function Heat({ title, dot, e, max, t, val }: { title: string; dot: string; e: S
     const ctx = c.getContext("2d")!;
     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height);
     for (let x = 0; x < e.len; x++) for (let y = 0; y < 20; y++) { const [r, g, b] = color(val(x, y)); ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`; ctx.fillRect(x * sc, y * sc, sc, sc); }
-    ctx.fillStyle = "#0f1720";
+    ctx.fillStyle = "#0b1f3f";
     for (let x = 0; x < e.len; x++) { const k = e.clicked[x]; if (k >= 0) { ctx.beginPath(); ctx.arc(x * sc + sc / 2, e.clusters[x][k] * sc + sc / 2, sc * 0.3, 0, 7); ctx.fill(); } }
   }, [e, max, val]);
   const i = Math.min(t, e.len - 1);

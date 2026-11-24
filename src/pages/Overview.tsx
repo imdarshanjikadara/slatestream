@@ -6,12 +6,16 @@ import { ErrorState, Loading, PageHeader, StatStrip, Tabs } from "@/components/c
 import { Bars, ChartCard, GapBars, Legend, LineChart } from "@/components/Charts";
 import { Pill } from "@/components/Pill";
 import { useState } from "react";
+import { Compass } from "lucide-react";
+import { useTour, TOUR } from "@/lib/tour";
+import { Term } from "@/components/Help";
 
 const GAM = ["0", "0.5", "0.9", "0.95", "0.99"];
 
 export default function Overview() {
   const site = useSite();
   const [k, setK] = useState("3");
+  const tour = useTour();
   if (site.error) return <ErrorState error={site.error} />;
   if (!site.data) return <Loading />;
   const S = site.data;
@@ -28,10 +32,31 @@ export default function Overview() {
         <div className="flex flex-wrap items-center gap-1.5"><Pill tone="neutral">Simulated viewers</Pill><Pill tone="neutral">5 seeds</Pill><Pill tone="success">Rule fixed before runs</Pill></div>
         <Link to="/watch" className="btn-primary"><MonitorPlay className="h-4 w-4" />Watch a session</Link>
       </PageHeader>
+      <section className="card overflow-hidden">
+        <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+          <div className="bg-brand px-5 py-5 text-white">
+            <div className="text-[12px] font-semibold uppercase tracking-wider text-[#93c5fd]">Start here</div>
+            <h2 className="mt-1 text-[18px] font-semibold tracking-tight">Chase the next click, or plan the whole session?</h2>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-white/75">A recommender shows a few videos at a time. A click-chaser picks what is most likely to be clicked now. SlateQ also thinks about how long the viewer will stay. This site lets you watch both on the same simulated viewers and check the results.</p>
+            <button className="btn-primary mt-4 border-white/20 bg-white text-brand hover:bg-white/90" onClick={() => tour.start(0)}><Compass className="h-4 w-4" />Take the guided tour ({TOUR.length} steps)</button>
+          </div>
+          <ol className="divide-y divide-line">
+            {[["/watch", "Watch one viewer", "See each step: what was shown, what was watched, how the time budget changes."],
+              ["/race", "Race all four", "The same viewer under every recommender, side by side."],
+              ["/findings/rq1", "Read the findings", "The averages over every test viewer, with what each result does and does not show."],
+              ["/guide", "Check the limits", "What is simulated and what the numbers cannot tell you."]].map(([to, t, d], i) => (
+              <li key={to}><Link to={to} className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-hover-row">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-[12.5px] font-semibold text-primary ring-1 ring-accent-line">{i + 1}</span>
+                <span className="min-w-0 flex-1"><span className="block text-[13.5px] font-medium text-ink">{t}</span><span className="meta">{d}</span></span>
+                <ArrowRight className="h-4 w-4 text-faint transition group-hover:translate-x-0.5 group-hover:text-ink" />
+              </Link></li>))}
+          </ol>
+        </div>
+      </section>
       <StatStrip items={[
         { label: `RQ1: SlateQ − learned myopic, N = ${CELL[0]}, k = ${CELL[1]}`, value: sgn(g.mean_diff), tone: "accent", sub: `${pct(g.relative_to_b)} watch time per session` },
-        { label: "RQ2: settings where SlateQ is clearly higher", value: `${grid.filter((r) => r.verdict === "A higher").length} of ${grid.length}`, hint: "Excludes the k = N control" },
-        { label: "SlateQ − oracle myopic, N = 80, k = 3", value: sgn(g80.mean_diff), sub: "vs the perfect click-chaser" },
+        { label: "RQ2: settings where SlateQ is clearly higher", sub: <Term id="clear">what "clearly" means</Term>, value: `${grid.filter((r) => r.verdict === "A higher").length} of ${grid.length}`, hint: "Excludes the k = N control" },
+        { label: "SlateQ − oracle myopic, N = 80, k = 3", value: sgn(g80.mean_diff), sub: <Term id="oracle">vs the perfect click-chaser</Term> },
         { label: "RQ3: gap under the most different viewers", value: sgn(sev.mean_diff), sub: sev.verdict === "A higher" ? "clear" : "no clear difference" },
         { label: "Test viewers per run", value: int(S.frozen.eval_episodes), unit: "x 5 seeds" },
       ]} />

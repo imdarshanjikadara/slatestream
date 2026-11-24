@@ -1,9 +1,10 @@
-// App shell: slate sidebar with grouped navigation (Overview; REPLAY; RESULTS), the guide and the study link pinned
+// App shell: navy sidebar with grouped navigation (Overview; REPLAY; RESULTS), the guide and the study link pinned
 // at the bottom. Active item is a soft fill, never a side bar. Phones get a top bar and a slide-in menu.
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { BookOpen, Code2, Flag, FlaskConical, LayoutDashboard, Menu, MonitorPlay, Palette, Table2, X } from "lucide-react";
+import { TourBar, Welcome, useTour } from "@/lib/tour";
+import { BookOpen, Code2, Compass, Flag, FlaskConical, LayoutDashboard, Menu, MonitorPlay, Palette, Table2, X } from "lucide-react";
 
 type Item = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 export const NAV: { group: string | null; items: Item[] }[] = [
@@ -24,7 +25,7 @@ function Brand() {
   return (
     <Link to="/" className="flex h-16 items-center gap-2.5 border-b border-white/10 px-5" aria-label="SlateStream, home">
       <img src="/brand/mark.svg" alt="" className="h-9 w-9 shrink-0" />
-      <div className="leading-tight"><div className="text-[14px] font-bold tracking-[0.08em] text-[#5eead4]">SLATESTREAM</div><div className="text-[11px] text-white/60">Recommender study</div></div>
+      <div className="leading-tight"><div className="text-[14px] font-bold tracking-[0.08em] text-[#93c5fd]">SLATESTREAM</div><div className="text-[11px] text-white/60">Recommender study</div></div>
     </Link>
   );
 }
@@ -34,6 +35,7 @@ const iconClass = (active: boolean) => `h-[18px] w-[18px] shrink-0 ${active ? "t
 
 export function Layout() {
   const [open, setOpen] = useState(false);
+  const tour = useTour();
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
   useEffect(() => { document.getElementById("main")?.scrollTo?.(0, 0); window.scrollTo(0, 0); }, [loc.pathname]);
@@ -57,6 +59,7 @@ export function Layout() {
   );
   const footer = (
     <div className="border-t border-white/10 p-3">
+      <button type="button" onClick={() => (tour.index === null ? tour.start(0) : tour.go(tour.index))} className={`${itemClass(tour.index !== null)} mb-0.5 w-full`}><Compass className={iconClass(tour.index !== null)} />{tour.index === null ? "Guided tour" : `Guided tour · ${tour.index + 1}`}</button>
       <NavLink to="/guide" aria-current={onGuide ? "page" : undefined} className={`${itemClass(onGuide)} mb-0.5`}><BookOpen className={iconClass(onGuide)} />How it works</NavLink>
       <a href={STUDY_REPO} target="_blank" rel="noopener noreferrer" className={itemClass(false)}><Code2 className={iconClass(false)} />Study code and data</a>
       <div className="mt-3 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
@@ -68,6 +71,7 @@ export function Layout() {
   return (
     <>
       <a href="#main" className="skip-link">Skip to content</a>
+      <Welcome />
       <div className="min-h-screen lg:flex">
         <div className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 lg:hidden">
           <button onClick={() => setOpen(true)} className="btn btn-sm w-9 px-0" aria-label="Menu"><Menu className="h-4 w-4" /></button>
@@ -79,7 +83,7 @@ export function Layout() {
           <Brand />{nav}{footer}
         </aside>
         <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none sm:px-6 lg:px-8 lg:py-7">
-          <div className="mx-auto max-w-[1500px]"><ErrorBoundary key={loc.pathname}><Outlet /></ErrorBoundary></div>
+          <div className="mx-auto max-w-[1500px]"><TourBar /><ErrorBoundary key={loc.pathname}><Outlet /></ErrorBoundary></div>
         </main>
       </div>
     </>

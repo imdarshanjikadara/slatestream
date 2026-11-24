@@ -4,6 +4,7 @@ import { Download, Search, X } from "lucide-react";
 import { RUNG, fmt, sgn, useSite, type Gap } from "@/lib/data";
 import { ErrorState, EmptyState, Loading, PageHeader, Tabs } from "@/components/common";
 import { VerdictPill } from "@/components/Pill";
+import { HowTo, Term } from "@/components/Help";
 
 type Row = Gap & { section: string };
 const SECTIONS = [{ key: "all", label: "All" }, { key: "rq2", label: "RQ1 and RQ2" }, { key: "rq3", label: "RQ3" }, { key: "phase6b", label: "Follow-ups E1 to E4" }];
@@ -33,6 +34,9 @@ export default function Comparisons() {
       <PageHeader title="All comparisons" subtitle="Every paired comparison in the study: the mean difference in watch time per session over 5 seeds, its 95% confidence interval and the verdict by the pre-registered rule.">
         <button className="btn" onClick={csv}><Download className="h-4 w-4" />Export CSV</button>
       </PageHeader>
+      <HowTo id="comparisons">
+        Each row compares two recommenders as <b className="font-medium">first − second</b> in <Term id="watch">watch time</Term> per session, averaged over 5 runs. The <Term id="ci">95% CI</Term> is the likely range of that average; the verdict applies the <Term id="clear">rule fixed before any run</Term>. <Term id="N">N</Term> is the number of candidates and <Term id="k">k</Term> the number shown.
+      </HowTo>
       <Tabs ariaLabel="Section" active={sec} onChange={setSec} items={SECTIONS.map((s) => ({ key: s.key, label: s.label, count: count(s.key) }))} />
       <div className="flex flex-wrap items-center gap-2" role="search">
         <div className="relative w-full sm:w-72">

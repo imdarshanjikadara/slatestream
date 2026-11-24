@@ -5,6 +5,7 @@ import { FINDINGS, FOLLOW, MAIN, type Finding } from "@/lib/findings";
 import { ErrorState, Loading, PageHeader } from "@/components/common";
 import { SplitItem, SplitList, SplitView } from "@/components/SplitView";
 import { Exploratory } from "@/components/Pill";
+import { HowTo, Steps, Term } from "@/components/Help";
 
 export default function Findings() {
   const { id } = useParams();
@@ -20,6 +21,14 @@ export default function Findings() {
   return (
     <div className="page">
       <PageHeader title="Findings" subtitle={<>Averages over {S.frozen.eval_episodes.toLocaleString("en-US")} test viewers per run and 5 run seeds. A result is <b className="font-medium text-ink">clear</b> only if its 95% confidence interval excludes zero and all 5 seeds agree; the rule was fixed before any run.</>} />
+      <HowTo id="findings" title="How to read a finding">
+        <Steps items={[
+          <>Pick a question on the left. <b className="font-medium text-ink">RQ1 to RQ3</b> were planned before any run; <b className="font-medium text-ink">E1 to E5</b> are follow-ups.</>,
+          <>The big number is an average difference in <Term id="watch">watch time</Term> per session. Positive means SlateQ keeps viewers longer.</>,
+          <>The pill says whether it is a <Term id="clear">clear result</Term>. Bar whiskers show the <Term id="ci">95% interval</Term>.</>,
+          <>Always read <b className="font-medium text-ink">What it does not show</b> at the bottom of each finding.</>,
+        ]} />
+      </HowTo>
       <SplitView selected={!!cur} onBack={() => nav("/findings")}
         list={<SplitList title="Questions" count={`${FINDINGS.length} findings`} rowKey={(f) => f.id} activeId={shown?.id} onPick={pick}
           groups={[{ label: "Main questions · pre-registered", rows: MAIN }, { label: "Follow-ups · exploratory", rows: FOLLOW }]}

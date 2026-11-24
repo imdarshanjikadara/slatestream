@@ -5,6 +5,8 @@ import { useReplay } from "@/lib/replay";
 import { ErrorState, Loading, Notice, PageHeader } from "@/components/common";
 import { BudgetMeter, Cover, History, PlayerBar, VideoTile, ViewerPicker } from "@/components/Replay";
 import { VerdictPill } from "@/components/Pill";
+import { HowTo, Steps, Term } from "@/components/Help";
+import { BookOpenText } from "lucide-react";
 
 export default function Watch() {
   const site = useSite();
@@ -25,10 +27,19 @@ export default function Watch() {
         subtitle={<>The same recorded viewer served by two recommenders. Each step shows the {CELL[1]} videos put on screen out of {CELL[0]} candidates, which one was watched and the viewer's time budget. Over all {int(S.frozen.eval_episodes)} test viewers, SlateQ adds {sgn(g.mean_diff)} watch time per session over the learned click-chaser ({pct(g.relative_to_b)}); single viewers vary.</>}>
         <ViewerPicker seeds={S.trace_seeds} caseSeed={S.case_study_seed} />
       </PageHeader>
+      <HowTo id="watch">
+        <Steps items={[
+          <>Press <b className="font-medium text-ink">Play</b> (or the space bar). Each step, each recommender puts a <Term id="slate">slate</Term> of {CELL[1]} videos on screen.</>,
+          <>The card with the dark outline is the one the viewer <b className="font-medium text-ink">watched</b>. Sometimes they skip all three.</>,
+          <>Green <Term id="quality">quality</Term> gives the viewer time back; red costs extra. Watch the <Term id="budget">time budget</Term> bar.</>,
+          <>Read <b className="font-medium text-ink">What just happened</b> below. When both sessions end, the winner for this viewer is shown.</>,
+        ]} />
+      </HowTo>
       <div className="grid gap-4 lg:grid-cols-2">
         <Pane agent={a} onAgent={setA} e={A} max={max} bmax={bmax} />
         <Pane agent={b} onAgent={setB} e={B} max={max} bmax={bmax} />
       </div>
+      <Story a={a} b={b} A={A} B={B} />
       {r.t >= max && <Outcome site={S} a={a} b={b} A={A} B={B} />}
       <PlayerBar max={max} />
     </div>
@@ -77,15 +88,15 @@ function Pane({ agent, onAgent, e, max, bmax }: { agent: Agent; onAgent: (a: Age
           )}
         </div>
         <div>
-          <div className="mb-1.5 flex justify-between text-[12px] text-faint"><span>On screen now</span><span>{ended ? "" : `Step ${i + 1}`}</span></div>
+          <div className="mb-1.5 flex justify-between text-[12px] text-faint"><span>On screen now: the <Term id="slate">slate</Term></span><span>{ended ? "" : `Step ${i + 1}`}</span></div>
           {ended ? <div className="grid h-[7.5rem] place-items-center rounded-lg border border-dashed border-line-strong text-[13px] text-faint">The viewer has left</div> : (
             <div className="grid grid-cols-3 gap-2" key={`${i}`}>
               {e.clusters[i].map((topic, j) => <VideoTile key={j} topic={topic} variant={i * 3 + j} quality={e.quality[i][j]} taste={e.interests[i][topic]} watched={c === j} skipped={c >= 0 && c !== j || c < 0} />)}
             </div>)}
         </div>
         <div className="card flex overflow-hidden shadow-none">
-          {[["Watch time", fmt(cum)], ["Videos watched", String(clicks)], ["Steps", String(steps)]].map(([k, v], n) => (
-            <div key={k} className={`min-w-0 flex-1 px-3 py-2.5 ${n ? "border-l border-line" : ""}`}>
+          {([[<Term id="watch">Watch time</Term>, fmt(cum)], ["Videos watched", String(clicks)], ["Steps", String(steps)]] as [React.ReactNode, string][]).map(([k, v], n) => (
+            <div key={n} className={`min-w-0 flex-1 px-3 py-2.5 ${n ? "border-l border-line" : ""}`}>
               <div className="text-[12px] text-faint">{k}</div>
               <div className={`mt-1 text-[20px] font-medium tabular-nums tracking-tight ${n === 0 ? "text-data" : "text-ink"}`}>{v}</div>
             </div>))}
@@ -114,5 +125,43 @@ function Outcome({ site, a, b, A, B }: { site: Site; a: Agent; b: Agent; A: Sess
       </div>
       {avg && <VerdictPill v={flip ? (avg.verdict === "A higher" ? "A lower" : avg.verdict === "A lower" ? "A higher" : avg.verdict) : avg.verdict} a={NAME[a]} />}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ narrator: what just happened, in words */
+function describe(name: string, e: Session, t: number): { text: React.ReactNode; tone: "good" | "bad" | "skip" | "end" } {
+  if (t >= e.len) return { tone: "end", text: <><b className="font-medium text-ink">{name}</b>: the viewer has left after {e.len} steps with {fmt(e.total)} watch time.</> };
+  const c = e.clicked[t];
+  const shown = e.clusters[t].map(topicName).join(", ");
+  if (c < 0) return { tone: "skip", text: <><b className="font-medium text-ink">{name}</b> showed {shown}. The viewer skipped all of them: no watch time, and a little of the time budget is gone.</> };
+  const q = e.quality[t][c], topic = e.clusters[t][c];
+  return { tone: q >= 0 ? "good" : "bad", text: <><b className="font-medium text-ink">{name}</b> showed {shown}. The viewer watched <b className="font-medium text-ink">{topicName(topic)}</b> (their taste for it: {fmt(e.interests[t][topic])}) and gained {fmt(e.reward[t])} watch time. Its quality is {fmt(q)}, so it {q >= 0 ? "gave some time back" : "used extra time"}.</> };
+}
+const DOT = { good: "bg-success-fill", bad: "bg-danger-fill", skip: "bg-line-hover", end: "bg-primary" };
+
+function Story({ a, b, A, B }: { a: Agent; b: Agent; A: Session; B: Session }) {
+  const r = useReplay();
+  const t = r.t;
+  const da = describe(NAME[a], A, t), db = describe(NAME[b], B, t);
+  const ia = Math.min(t, A.len - 1), ib = Math.min(t, B.len - 1);
+  const ca = t >= A.len ? A.total : A.cum[ia], cb = t >= B.len ? B.total : B.cum[ib];
+  const ba = t >= A.len ? 0 : A.budget[ia], bb = t >= B.len ? 0 : B.budget[ib];
+  const lead = Math.abs(ca - cb) < 1e-9 ? "Both have the same watch time so far." : `${ca > cb ? NAME[a] : NAME[b]} is ahead by ${fmt(Math.abs(ca - cb))} watch time so far.`;
+  const tip = da.tone === "good" || db.tone === "good" ? "Good-quality videos refund time, so the session lasts longer. Choosing them is what planning ahead buys."
+    : da.tone === "bad" || db.tone === "bad" ? "A poor-quality video still earns watch time now, but it shortens the session. A click-chaser does not see this cost; a planner does."
+    : da.tone === "skip" && db.tone === "skip" ? "Skips happen when nothing on screen matches the viewer's taste well."
+    : "Keep watching: the difference builds up over many steps.";
+  return (
+    <section className="card" aria-live="polite">
+      <div className="card-head"><BookOpenText className="h-4 w-4 text-info" /><h2 className="card-title">What just happened</h2><span className="count">{t >= Math.max(A.len, B.len) ? "session over" : `step ${t + 1}`}</span></div>
+      <div className="card-body grid gap-3 lg:grid-cols-2">
+        {[da, db].map((d, k) => <p key={k} className="flex gap-2.5 text-[13px] leading-relaxed text-muted"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${DOT[d.tone]}`} /><span className="min-w-0">{d.text}</span></p>)}
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-alt px-4 py-2.5 text-[12.5px]">
+        <span className="font-medium text-ink">{lead}</span>
+        <span className="text-faint">Time budget left: {NAME[a]} {fmt(Math.max(0, ba), 1)}, {NAME[b]} {fmt(Math.max(0, bb), 1)}</span>
+        <span className="basis-full text-info">Why it matters: {tip}</span>
+      </div>
+    </section>
   );
 }

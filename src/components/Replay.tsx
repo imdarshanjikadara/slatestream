@@ -61,14 +61,14 @@ export function PlayerBar({ max }: { max: number }) {
 }
 
 /* ------------------------------------------------------------------ video tile (generated cover: topics are only numbers) */
-const SHADES = ["#134e4a", "#115e59", "#0f766e", "#0d9488", "#14b8a6", "#5eead4", "#99f6e4", "#1e293b", "#334155", "#475569",
-  "#64748b", "#94a3b8", "#cbd5e1", "#0e7490", "#0891b2", "#22d3ee", "#155e75", "#a5f3fc", "#0f172a", "#2dd4bf"];
+const SHADES = ["#dbeafe", "#e0e7ff", "#cffafe", "#e2e8f0", "#ede9fe", "#d1fae5", "#fce7f3", "#fef3c7", "#dbeafe", "#e0f2fe",
+  "#f1f5f9", "#c7d2fe", "#bae6fd", "#ccfbf1", "#e9d5ff", "#fde2e4", "#dcfce7", "#e5e7eb", "#d6e4ff", "#fae8ff"];
 const light = (hex: string) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
 function rng(seed: number) { let s = (seed * 2654435761) >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 
 export function Cover({ topic, variant, className = "" }: { topic: number; variant: number; className?: string }) {
   const bg = SHADES[topic % SHADES.length];
-  const ink = light(bg) ? "#0f1720" : "#ffffff";
+  const ink = light(bg) ? "#1e293b" : "#ffffff";
   const r = rng(topic * 997 + variant * 31 + 7);
   const kind = topic % 5;
   const shapes: React.ReactNode[] = [];
