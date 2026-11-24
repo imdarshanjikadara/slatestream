@@ -12,8 +12,8 @@ export const ROLE: Record<Agent, string> = {
   oracle_myopic: "Perfect click-chaser: sees the viewer's hidden tastes",
   random: "Shows random videos",
 };
-/** Data colours: bronze for the method under study, neutrals for the baselines (reference: "colour for data, neutral for the rest"). */
-export const COLOR: Record<Agent, string> = { slateq: "#a87a1e", learned_myopic: "#6b7280", oracle_myopic: "#1e1a14", random: "#c4c8cf" };
+/** Data colours: teal for the method under study, neutrals for the baselines (reference: "colour for data, neutral for the rest"). */
+export const COLOR: Record<Agent, string> = { slateq: "#0d9488", learned_myopic: "#64748b", oracle_myopic: "#1e293b", random: "#cbd5e1" };
 
 export const PRIMARY = "SlateQ - learned-myopic";
 export const VS_ORACLE = "SlateQ - oracle-myopic";

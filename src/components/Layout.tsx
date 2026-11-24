@@ -1,4 +1,4 @@
-// App shell: charcoal sidebar with grouped navigation (Overview; REPLAY; RESULTS), the guide and the study link pinned
+// App shell: slate sidebar with grouped navigation (Overview; REPLAY; RESULTS), the guide and the study link pinned
 // at the bottom. Active item is a soft fill, never a side bar. Phones get a top bar and a slide-in menu.
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
@@ -24,13 +24,13 @@ function Brand() {
   return (
     <Link to="/" className="flex h-16 items-center gap-2.5 border-b border-white/10 px-5" aria-label="SlateStream, home">
       <img src="/brand/mark.svg" alt="" className="h-9 w-9 shrink-0" />
-      <div className="leading-tight"><div className="text-[14px] font-bold tracking-[0.08em] text-[#F2C94C]">SLATESTREAM</div><div className="text-[11px] text-white/60">Recommender study</div></div>
+      <div className="leading-tight"><div className="text-[14px] font-bold tracking-[0.08em] text-[#5eead4]">SLATESTREAM</div><div className="text-[11px] text-white/60">Recommender study</div></div>
     </Link>
   );
 }
 
 const itemClass = (active: boolean) => `group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-[13.5px] transition ${active ? "bg-white/10 font-medium text-white" : "text-white/75 hover:bg-white/[0.07] hover:text-white"}`;
-const iconClass = (active: boolean) => `h-[18px] w-[18px] shrink-0 ${active ? "text-gold" : "text-white/50 group-hover:text-white/80"}`;
+const iconClass = (active: boolean) => `h-[18px] w-[18px] shrink-0 ${active ? "text-primary" : "text-white/50 group-hover:text-white/80"}`;
 
 export function Layout() {
   const [open, setOpen] = useState(false);

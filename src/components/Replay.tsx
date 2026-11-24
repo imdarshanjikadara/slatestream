@@ -61,14 +61,14 @@ export function PlayerBar({ max }: { max: number }) {
 }
 
 /* ------------------------------------------------------------------ video tile (generated cover: topics are only numbers) */
-const SHADES = ["#6f500f", "#8a6417", "#a87a1e", "#c99a2e", "#e0b52a", "#f2c94c", "#d9c7a0", "#b8a27a", "#8c7b5c", "#5f5546",
-  "#3f3a33", "#6b7280", "#9ca3af", "#4b5563", "#7c6a4a", "#a68b5b", "#c9b48a", "#e6d5ae", "#2f2a22", "#857a68"];
+const SHADES = ["#134e4a", "#115e59", "#0f766e", "#0d9488", "#14b8a6", "#5eead4", "#99f6e4", "#1e293b", "#334155", "#475569",
+  "#64748b", "#94a3b8", "#cbd5e1", "#0e7490", "#0891b2", "#22d3ee", "#155e75", "#a5f3fc", "#0f172a", "#2dd4bf"];
 const light = (hex: string) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
 function rng(seed: number) { let s = (seed * 2654435761) >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 
 export function Cover({ topic, variant, className = "" }: { topic: number; variant: number; className?: string }) {
   const bg = SHADES[topic % SHADES.length];
-  const ink = light(bg) ? "#1e1a14" : "#ffffff";
+  const ink = light(bg) ? "#0f1720" : "#ffffff";
   const r = rng(topic * 997 + variant * 31 + 7);
   const kind = topic % 5;
   const shapes: React.ReactNode[] = [];
@@ -87,10 +87,10 @@ export function Cover({ topic, variant, className = "" }: { topic: number; varia
 
 export function VideoTile({ topic, variant, quality, taste, watched, skipped }: { topic: number; variant: number; quality: number; taste: number; watched: boolean; skipped: boolean }) {
   return (
-    <div className={`rise overflow-hidden rounded-lg border bg-surface transition ${watched ? "border-gold-line ring-2 ring-gold" : "border-line"} ${skipped ? "opacity-60" : ""}`}>
+    <div className={`rise overflow-hidden rounded-lg border bg-surface transition ${watched ? "border-primary-line ring-2 ring-primary" : "border-line"} ${skipped ? "opacity-60" : ""}`}>
       <div className="relative aspect-video">
         <Cover topic={topic} variant={variant} />
-        {watched && <span className="absolute left-1.5 top-1.5 rounded-md bg-gold px-1.5 py-0.5 text-[10.5px] font-semibold text-on-gold">Watched</span>}
+        {watched && <span className="absolute left-1.5 top-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10.5px] font-semibold text-on-primary">Watched</span>}
       </div>
       <div className="px-2 py-1.5">
         <div className="truncate text-[12.5px] font-medium text-ink">{topicName(topic)}</div>
@@ -109,7 +109,7 @@ export function TasteBar({ v }: { v: number }) {
   return (
     <div className="relative mt-1 h-1 overflow-hidden rounded-full bg-track">
       <span className="absolute inset-y-0 left-1/2 w-px bg-line-strong" />
-      <span className="absolute inset-y-0" style={v >= 0 ? { left: "50%", width: `${w}%`, background: "var(--color-bronze)" } : { right: "50%", width: `${w}%`, background: "var(--color-line-hover)" }} />
+      <span className="absolute inset-y-0" style={v >= 0 ? { left: "50%", width: `${w}%`, background: "var(--color-data)" } : { right: "50%", width: `${w}%`, background: "var(--color-line-hover)" }} />
     </div>
   );
 }
@@ -120,7 +120,7 @@ export function BudgetMeter({ value, max }: { value: number; max: number }) {
   return (
     <div>
       <div className="mb-1 flex justify-between text-[12px] text-faint"><span>Time budget left</span><span className="tabular-nums text-muted">{fmt(Math.max(0, value), 1)}</span></div>
-      <div className="h-2 overflow-hidden rounded-full bg-track"><div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${f * 100}%`, background: f > 0.25 ? "var(--color-bronze)" : "var(--color-danger-fill)" }} /></div>
+      <div className="h-2 overflow-hidden rounded-full bg-track"><div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${f * 100}%`, background: f > 0.25 ? "var(--color-data)" : "var(--color-danger-fill)" }} /></div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-// Small dependency-free charts: bronze for the data under study, neutrals for the rest, hairline grid, a hover readout.
+// Small dependency-free charts: teal for the data under study, neutrals for the rest, hairline grid, a hover readout.
 import { useEffect, useRef, useState } from "react";
 import { sgn } from "@/lib/data";
 
-export const BRAND = "var(--color-bronze)";
+export const BRAND = "var(--color-data)";
 const NoData = () => <div className="grid h-44 place-items-center text-[13px] text-faint">No data</div>;
 
 function useWidth(min = 260) {

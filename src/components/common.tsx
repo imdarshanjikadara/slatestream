@@ -59,7 +59,7 @@ export function StatStrip({ items }: { items: { label: string; value: React.Reac
       {items.map((s) => (
         <div key={s.label} className={`-ml-px -mt-px min-w-0 grow basis-[10.5rem] border-l border-t border-line px-4 py-3.5 ${items.length > 4 ? "sm:basis-[11rem]" : "sm:basis-[13rem]"}`} title={s.hint}>
           <div className="text-[12px] leading-snug text-faint">{s.label}</div>
-          <div className={`mt-1.5 break-words text-[clamp(1.125rem,1.2vw+0.6rem,1.375rem)] font-medium leading-tight tracking-tight tabular-nums ${s.tone === "danger" ? "text-danger" : s.tone === "warning" ? "text-warning" : s.tone === "accent" ? "text-bronze" : "text-ink"}`}>
+          <div className={`mt-1.5 break-words text-[clamp(1.125rem,1.2vw+0.6rem,1.375rem)] font-medium leading-tight tracking-tight tabular-nums ${s.tone === "danger" ? "text-danger" : s.tone === "warning" ? "text-warning" : s.tone === "accent" ? "text-data" : "text-ink"}`}>
             {s.value}{s.unit && <span className="ml-1 text-[13px] font-normal text-faint">{s.unit}</span>}
           </div>
           {s.sub && <div className="mt-0.5 text-[12px] text-faint">{s.sub}</div>}

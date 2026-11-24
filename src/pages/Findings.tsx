@@ -38,7 +38,7 @@ function Detail({ f, S }: { f: Finding; S: Site }) {
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1"><h2 className="text-[17px] font-semibold tracking-tight text-ink">{f.title}</h2>{f.explo && <Exploratory />}</div>
         <p className="mt-1 text-[13px] text-muted">{f.question}</p>
         <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-2 border-t border-line pt-3">
-          <span className="text-[26px] font-medium tabular-nums tracking-tight text-bronze">{h.value}</span>
+          <span className="text-[26px] font-medium tabular-nums tracking-tight text-data">{h.value}</span>
           <span className="text-[13px] text-faint">{h.unit}</span>
           <span className="ml-auto">{h.verdict}</span>
         </div>
