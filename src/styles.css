@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* Design tokens: warm charcoal for the sidebar, yellow for primary actions and selection,
+   bronze for chart lines, progress and focus. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-brand: #1e1a14;          /* charcoal: sidebar (the logo sits on it) */
+  --color-brand-dark: #15120d;
+  --color-gold: #f9cf1f;           /* yellow: primary buttons, selection */
+  --color-gold-hover: #efc30f;
+  --color-gold-line: #d6ae12;
+  --color-on-gold: #1e1a14;        /* text on yellow */
+  --color-bronze: #a87a1e;         /* bronze: chart lines, progress */
+  --color-accent: #b8892b;
+  --color-accent-soft: #fcf5db;    /* selected row, current item */
+  --color-accent-line: #f0dc9c;
+  --color-hover-row: #f2f0ea;      /* row under the pointer */
+  --color-editing: #f7e7a6;        /* the row being edited: clearly darker than hover and selection */
+
+  --color-canvas: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f9fafb;
+  --color-line: #e7e9ee;
+  --color-line-strong: #d5d9e0;
+  --color-ink: #111827;
+  --color-muted: #4b5563;
+  --color-faint: #6b7280;
+  --color-line-hover: #9ca3af;
+  --color-hover: #f3f4f6;
+  --color-track: #eef0f3;
+  --color-focus: #8a6417;          /* dark bronze focus ring */
+
+  --color-success: #047857;  --color-success-fill: #10b981;  --color-success-soft: #ecfdf5;  --color-success-line: #a7f3d0;
+  --color-warning: #92400e;  --color-warning-fill: #f59e0b;  --color-warning-soft: #fffbeb;  --color-warning-line: #fde68a;
+  --color-danger: #b91c1c;   --color-danger-fill: #ef4444;   --color-danger-soft: #fef2f2;   --color-danger-line: #fecaca;
+  --color-info: #1d4ed8;     --color-info-fill: #3170f9;     --color-info-soft: #eef3fe;     --color-info-line: #cddbfd;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 1px rgb(16 24 40 / 0.02);
+  --shadow-pop: 0 12px 24px -6px rgb(16 24 40 / 0.14), 0 4px 8px -4px rgb(16 24 40 / 0.08);
+  --shadow-dialog: 0 24px 48px -12px rgb(16 24 40 / 0.22), 0 8px 16px -8px rgb(16 24 40 / 0.10);
+}
+
+@layer base {
+  *, ::before, ::after, ::backdrop, ::file-selector-button { border-color: var(--color-line); }
+  html { background: var(--color-canvas); overscroll-behavior-y: none; }
+  body { @apply bg-canvas text-ink antialiased text-[14px]; font-feature-settings: "cv11", "ss01"; overscroll-behavior-y: none; }
+  table { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  input:focus-visible, textarea:focus-visible, select:focus-visible { outline: none; }
+  button { cursor: pointer; }
+  button:disabled { cursor: default; }
+}
+
+@layer components {
+  .page { @apply flex flex-col gap-5; }
+  .page-title { @apply text-[20px] font-semibold tracking-tight text-ink; }
+  .card-title { @apply text-[14px] font-semibold text-ink; }
+  .dialog-title { @apply text-[15px] font-semibold text-ink; }
+  .meta { @apply text-[12px] text-faint; }
+
+  .input { @apply w-full h-9 rounded-lg border border-line-strong bg-surface px-3 text-[13.5px] text-ink outline-none transition-colors placeholder:text-faint hover:border-line-hover focus:border-focus focus:shadow-[0_0_0_1px_var(--color-focus)] disabled:bg-surface-alt disabled:text-faint; }
+  .input-sm { @apply h-8 text-[13px]; }
+  textarea.input { @apply h-auto py-2; }
+  .btn { @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line-strong bg-surface px-3 text-[13.5px] font-medium whitespace-nowrap text-ink shadow-card transition-colors hover:border-line-hover hover:bg-surface-alt disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-primary { @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-gold-line bg-gold px-3.5 text-[13.5px] font-semibold whitespace-nowrap text-on-gold shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_1px_2px_rgb(30_26_20/0.16)] transition-colors hover:bg-gold-hover disabled:pointer-events-none disabled:border-transparent disabled:bg-neutral-200 disabled:text-faint disabled:shadow-none; }
+  .btn-danger { @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-danger-line bg-surface px-3 text-[13.5px] font-medium whitespace-nowrap text-danger transition-colors hover:bg-danger-soft disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-danger-solid { @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-danger px-3.5 text-[13.5px] font-medium whitespace-nowrap text-white transition-colors hover:brightness-110 disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-ghost { @apply inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-medium whitespace-nowrap text-muted transition-colors hover:bg-hover hover:text-ink disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-sm { @apply h-8 px-2.5 text-[13px]; }
+  .btn-icon { @apply inline-grid h-8 w-8 shrink-0 place-items-center rounded-lg text-faint transition-colors hover:bg-hover hover:text-ink disabled:opacity-35 disabled:pointer-events-none; }
+
+  .card { @apply rounded-xl border border-line bg-surface shadow-card; }
+  .card-head { @apply flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3; }
+  .card-body { @apply p-4; }
+  .count { @apply text-[12px] tabular-nums text-faint; }
+  .pop { @apply rounded-xl border border-line bg-surface shadow-pop; animation: pop-in 0.12s ease-out; }
+  .dialog-panel { @apply rounded-xl border border-line bg-surface shadow-dialog; animation: pop-in 0.16s ease-out; }
+  .dialog-backdrop { @apply bg-[rgb(17_24_39/0.45)]; }
+  .label { @apply mb-1.5 block text-[12px] font-medium text-muted; }
+  .hint { @apply mt-1 text-[12px] text-faint; }
+
+  /* Tabs: one size everywhere. Counts sit in a neutral pill. */
+  .seg { @apply inline-flex max-w-full self-start overflow-x-auto rounded-lg border border-line bg-surface-alt p-0.5; scrollbar-width: none; }
+  @media (max-width: 640px) { .seg { mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent); } }
+  .seg > a, .seg > button { @apply inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-[7px] text-[13px] font-medium text-faint transition-colors hover:text-ink; }
+  .seg > a[data-active="true"], .seg > button[data-active="true"] { @apply bg-surface text-ink shadow-card ring-1 ring-line; }
+  .seg .tab-count { @apply rounded-full bg-line/70 px-1.5 text-[11px] font-medium tabular-nums text-muted; }
+
+  /* Status pill: dot + soft fill + hairline border. */
+  .pill { @apply inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[12px] font-medium whitespace-nowrap; }
+  .pill-neutral { @apply border-line bg-surface-alt text-muted; }
+  .pill-success { @apply border-success-line bg-success-soft text-success; }
+  .pill-warning { @apply border-warning-line bg-warning-soft text-warning; }
+  .pill-danger { @apply border-danger-line bg-danger-soft text-danger; }
+  .pill-info { @apply border-info-line bg-info-soft text-info; }
+  .dot { @apply inline-block h-1.5 w-1.5 shrink-0 rounded-full; }
+
+  .notice { @apply rounded-lg border px-3.5 py-2.5 text-[13px] leading-snug; }
+  .notice-success { @apply border-success-line bg-success-soft text-success; }
+  .notice-warning { @apply border-warning-line bg-warning-soft text-warning; }
+  .notice-danger { @apply border-danger-line bg-danger-soft text-danger; }
+  .notice-info { @apply border-info-line bg-info-soft text-info; }
+  .notice-neutral { @apply border-line bg-surface-alt text-muted; }
+
+  .dl { @apply grid grid-cols-[9rem_minmax(0,1fr)] gap-x-4 gap-y-2 text-[13px]; }
+  .dl dt { @apply text-faint; }
+  .dl dd { @apply min-w-0 break-words text-ink; }
+}
+
+/* Grid and flex children may shrink below their content (wide tables scroll inside their card instead of widening the page). */
+.grid > * { min-width: 0; }
+
+/* Tables: hairline column rules; the table always fills its card. */
+.tbl th, .tbl td { border-right: 1px solid color-mix(in srgb, var(--color-line) 80%, transparent); }
+.tbl th:last-child, .tbl td:last-child { border-right: 0; }
+
+@keyframes pop-in { from { opacity: 0; transform: translateY(4px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.nav-progress { animation: nav-progress 6s cubic-bezier(0.1, 0.7, 0.2, 1) forwards; }
+@keyframes nav-progress { from { width: 0; } to { width: 88%; } }
+
+@layer base {
+  input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; flex-shrink: 0; border: 1.5px solid var(--color-line-strong);
+    border-radius: 0.3rem; background: white; display: inline-grid; place-content: center; cursor: pointer; transition: background-color .12s, border-color .12s;
+  }
+  input[type="checkbox"]:hover { border-color: var(--color-line-hover); }
+  input[type="checkbox"]:checked { background: var(--color-bronze); border-color: var(--color-bronze); }
+  input[type="checkbox"]:checked::after { content: ""; width: 0.55rem; height: 0.3rem; border: 2px solid white; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  input[type="checkbox"]:indeterminate { background: var(--color-bronze); border-color: var(--color-bronze); }
+  input[type="checkbox"]:indeterminate::after { content: ""; width: 0.5rem; height: 2px; background: white; }
+  input[type="checkbox"]:disabled { opacity: .45; cursor: not-allowed; }
+  input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+  ::selection { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+  * { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+  /* One slim scrollbar style everywhere (Chrome, Edge, Safari): a rounded thumb that darkens on hover, no track. */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--color-line-hover); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  .scroll-pane { scrollbar-gutter: stable; }
+  .scroll-on-brand { scrollbar-color: rgb(255 255 255 / 0.25) transparent; }
+  .scroll-on-brand::-webkit-scrollbar-thumb { background-color: rgb(255 255 255 / 0.25); }
+}
+
+:root { color-scheme: light; }
+.skip-link { position: absolute; left: 0.5rem; top: -3rem; z-index: 200; border-radius: 0.5rem; background: white; padding: 0.5rem 0.75rem; font-size: 13px; font-weight: 500; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); }
+.skip-link:focus { top: 0.5rem; }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .card { box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Replay: the bar under a playing video fills over one step. */
+.step-fill { animation: step-fill var(--step-ms, 900ms) linear forwards; }
+@keyframes step-fill { from { width: 0; } to { width: 100%; } }
+.rise { animation: pop-in 0.18s ease-out both; }
+input[type="range"] { accent-color: var(--color-bronze); }
