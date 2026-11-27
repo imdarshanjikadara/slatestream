@@ -6,6 +6,8 @@ import { ErrorState, Loading, PageHeader, Tabs } from "@/components/common";
 import { PlayerBar, ViewerPicker } from "@/components/Replay";
 import { Hint } from "@/components/Help";
 import { NextStep, StepLabel } from "@/components/Path";
+import { Source } from "@/components/Source";
+import { traceFile } from "@/lib/data";
 
 // Diverging scale: grey-blue (dislike) through near-white to blue (like).
 function color(v: number): [number, number, number] {
@@ -47,6 +49,7 @@ export default function Taste() {
       <div className="grid gap-4 lg:grid-cols-2">
         {ss.map(({ a, e }) => <Heat key={a + mode + r.viewer} title={NAME[a]} dot={COLOR[a]} e={e} max={max} t={r.t} val={(x, y) => val(e, x, y)} />)}
       </div>
+      <Source files={AGENTS.map((x) => traceFile(x, r.seed))} />
       <PlayerBar max={max} />
       <NextStep to="/taste" />
     </div>

@@ -2,8 +2,9 @@
 // Phones get a top bar and a slide-in menu.
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BookOpen, Code2, Flag, FlaskConical, Home, Menu, MonitorPlay, Palette, Table2, X } from "lucide-react";
+import { BookOpen, Code2, Compass, Flag, FlaskConical, Home, Menu, MonitorPlay, Palette, Table2, X } from "lucide-react";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { TourBar, useTour } from "@/lib/tour";
 
 type Item = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 const STEPS: Item[] = [
@@ -24,6 +25,7 @@ const iconClass = (active: boolean) => `h-[18px] w-[18px] shrink-0 ${active ? "t
 
 export function Layout() {
   const [open, setOpen] = useState(false);
+  const tour = useTour();
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
@@ -57,6 +59,7 @@ export function Layout() {
             <div className="leading-tight"><div className="text-[14px] font-bold tracking-[0.08em] text-[#93c5fd]">SLATESTREAM</div><div className="text-[11px] text-white/60">SlateQ vs click-chasing</div></div>
           </Link>
           <nav className="scroll-on-brand flex-1 overflow-y-auto px-3 py-3" aria-label="Main">
+            <button type="button" onClick={() => (tour.index === null ? tour.start(0) : tour.go(tour.index))} className={`${itemClass(tour.index !== null)} mb-3 w-full border border-white/15`}><Compass className={iconClass(tour.index !== null)} /><span className="flex-1 text-left">{tour.index === null ? "User guide" : `User guide · step ${tour.index + 1}`}</span></button>
             <div className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/50">Walk through</div>
             <div className="mb-4">{STEPS.map((s, i) => link(s, i + 1))}</div>
             <div className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/50">More</div>
@@ -69,7 +72,7 @@ export function Layout() {
           </div>
         </aside>
         <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none sm:px-6 lg:px-8 lg:py-7">
-          <div className="mx-auto max-w-[1500px]"><ErrorBoundary key={loc.pathname}><Outlet /></ErrorBoundary></div>
+          <div className="mx-auto max-w-[1500px]"><TourBar /><ErrorBoundary key={loc.pathname}><Outlet /></ErrorBoundary></div>
         </main>
       </div>
     </>

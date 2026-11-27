@@ -109,3 +109,15 @@ export const pct = (x: unknown, d = 1) => { const n = Number(x); return x === nu
 export const int = (x: unknown) => { const n = Number(x); return Number.isFinite(n) ? n.toLocaleString("en-US") : "-"; };
 export const ci = (g: { ci95_low: number; ci95_high: number }) => `95% CI [${sgn(g.ci95_low)}, ${sgn(g.ci95_high)}]`;
 export const topicName = (c: number) => `Topic ${String(c + 1).padStart(2, "0")}`;
+
+/* ------------------------------------------------------------------ where each number comes from (study repo on GitHub) */
+export const STUDY_BLOB = "https://github.com/imdarshanjikadara/slateq-recsim-study/blob/master/";
+export const SRC = {
+  rq2Gaps: "results/rq2/gaps.csv", rq2Agents: "results/rq2/agents.csv",
+  rq3Gaps: "results/rq3/gaps.csv", rq3Agents: "results/rq3/agents.csv",
+  p6Gaps: "results/phase6b/gaps.csv", p6Agents: "results/phase6b/agents.csv",
+  p6Clicks: "results/phase6b/clicks_watch.csv", p6ClickGaps: "results/phase6b/clicks_watch_gaps.csv",
+  budget: "results/phase3/budget.json", tune: "results/phase3/tune.json",
+  numbers: "docs/NUMBERS.md",
+};
+export const traceFile = (agent: string, seed: number) => `results/rq2/traces/matched_${agent}_seed${seed}.jsonl`;

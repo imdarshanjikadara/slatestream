@@ -1,12 +1,13 @@
 // The findings: one entry per research question and follow-up. Every number is looked up in site.json.
 import { useState } from "react";
-import { AGENTS, CELL, COLOR, NAME, PRIMARY, RUNG, RUNGS, VS_ORACLE, agentRow, ci, clickRow, fmt, gap, int, pct, sgn, type Site } from "./data";
+import { AGENTS, CELL, COLOR, NAME, PRIMARY, RUNG, RUNGS, SRC, VS_ORACLE, agentRow, ci, clickRow, fmt, gap, int, pct, sgn, type Site } from "./data";
 import { Bars, ChartCard, GapBars, Legend, LineChart, type BarGroup } from "@/components/Charts";
 import { Card, DL, Notice, StatStrip, Tabs } from "@/components/common";
+import { Source } from "@/components/Source";
 import { Pill, VerdictPill, verdictShort } from "@/components/Pill";
 
 export type Finding = {
-  id: string; kicker: string; title: string; question: string; explo?: boolean;
+  id: string; kicker: string; title: string; question: string; explo?: boolean; sources: string[];
   headline: (s: Site) => { value: string; unit: string; verdict: React.ReactNode };
   Detail: (p: { site: Site }) => React.ReactElement;
 };
@@ -39,13 +40,14 @@ function AgentTable({ site, sec, n, k, cond = "matched" }: { site: Site; sec: "r
           </tbody>
         </table>
       </div>
+      <Source files={[sec === "rq2" ? SRC.rq2Agents : sec === "rq3" ? SRC.rq3Agents : SRC.p6Agents]} className="border-t border-line px-4 py-2.5" />
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ RQ1 */
 const RQ1: Finding = {
-  id: "rq1", kicker: "RQ1", title: "Planning beats click-chasing", question: "Does SlateQ keep viewers watching longer than a recommender that chases the next click?",
+  id: "rq1", sources: [SRC.rq2Gaps, SRC.rq2Agents], kicker: "RQ1", title: "Planning beats click-chasing", question: "Does SlateQ keep viewers watching longer than a recommender that chases the next click?",
   headline: (s) => { const g = gap(s, "rq2", PRIMARY, N0, K0)!; return { value: sgn(g.mean_diff), unit: `more watch time per session (${N0} candidates, ${K0} shown)`, verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
   Detail: ({ site }) => {
     const g = gap(site, "rq2", PRIMARY, N0, K0)!, go = gap(site, "rq2", VS_ORACLE, N0, K0)!, gl = gap(site, "rq2", "learned-myopic - oracle-myopic", N0, K0)!;
@@ -56,7 +58,7 @@ const RQ1: Finding = {
         { label: "SlateQ − oracle myopic", value: sgn(go.mean_diff), sub: verdictShort(go.verdict) },
         { label: "Learned − oracle myopic", value: sgn(gl.mean_diff), sub: verdictShort(gl.verdict) },
       ]} />
-      <ChartCard title="Difference in watch time per session" subtitle="Average over 5 runs. Lines on the bars are 95% intervals.">
+      <ChartCard title="Difference in watch time per session" subtitle="Average over 5 runs. Lines on the bars are 95% intervals." source={[SRC.rq2Gaps]}>
         <GapBars rows={[
           { label: "SlateQ vs learned myopic", sub: "the fair comparison", mean: g.mean_diff, lo: g.ci95_low, hi: g.ci95_high, color: COLOR.slateq },
           { label: "SlateQ vs oracle myopic", sub: "vs the perfect click-chaser", mean: go.mean_diff, lo: go.ci95_low, hi: go.ci95_high, color: COLOR.slateq },
@@ -98,7 +100,7 @@ function RQ2Detail({ site }: { site: Site }) {
       { label: `vs learned myopic · ${nn} candidates, ${k} shown`, value: sgn(p.mean_diff), tone: "accent", sub: <>{ci(p)} · {verdictShort(p.verdict)}{p.control ? " (all candidates shown)" : ""}</> },
       { label: "vs oracle myopic", value: sgn(o.mean_diff), sub: verdictShort(o.verdict) },
     ]} />
-    <ChartCard title={`SlateQ's extra watch time, ${k} shown`} subtitle="Click a bar group to select it. Lines on the bars are 95% intervals."
+    <ChartCard title={`SlateQ's extra watch time, ${k} shown`} subtitle="Click a bar group to select it. Lines on the bars are 95% intervals." source={[SRC.rq2Gaps]}
       footer={<Legend items={[{ label: "vs learned myopic", color: COLOR.slateq }, { label: "vs oracle myopic", color: COLOR.learned_myopic }]} />}>
       <Bars groups={groups} height={260} onPick={(x) => setN(Number(x))} active={String(nn)} />
       <div className="meta mt-1 text-center">number of candidates</div>
@@ -113,7 +115,7 @@ function RQ2Detail({ site }: { site: Site }) {
   </>;
 }
 const RQ2: Finding = {
-  id: "rq2", kicker: "RQ2", title: "More choice, bigger gap", question: "How does the advantage change with more candidates (N) and more videos shown (k)?",
+  id: "rq2", sources: [SRC.rq2Gaps, SRC.rq2Agents], kicker: "RQ2", title: "More choice, bigger gap", question: "How does the advantage change with more candidates (N) and more videos shown (k)?",
   headline: (s) => { const g = gap(s, "rq2", PRIMARY, 80, 3)!; const grid = s.rq2.gaps.filter((r) => r.comparison === PRIMARY && !r.control);
     return { value: sgn(g.mean_diff), unit: "more watch time per session (80 candidates, 3 shown)", verdict: <Pill tone={grid.every((r) => r.verdict === "A higher") ? "success" : "neutral"}>Clear in {grid.filter((r) => r.verdict === "A higher").length} of {grid.length} settings</Pill> }; },
   Detail: RQ2Detail,
@@ -121,14 +123,14 @@ const RQ2: Finding = {
 
 /* ------------------------------------------------------------------ RQ3 */
 const RQ3: Finding = {
-  id: "rq3", kicker: "RQ3", title: "When viewers behave differently", question: "SlateQ assumes how viewers choose. What if they choose differently?",
+  id: "rq3", sources: [SRC.rq3Gaps, SRC.rq3Agents], kicker: "RQ3", title: "When viewers behave differently", question: "SlateQ assumes how viewers choose. What if they choose differently?",
   headline: (s) => { const g = gap(s, "rq3", PRIMARY, N0, K0, "severe_cascade")!; return { value: sgn(g.mean_diff), unit: "when viewers scan top-down", verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
   Detail: ({ site }) => {
     const rows = RUNGS.map((c) => gap(site, "rq3", PRIMARY, N0, K0, c)!);
     const rm = agentRow(site, "rq3", "random", N0, K0, "matched"), rs = agentRow(site, "rq3", "random", N0, K0, "severe_cascade");
     return <>
       <StatStrip items={rows.map((r, i) => ({ label: RUNG[RUNGS[i]], value: sgn(r.mean_diff), tone: i === 0 ? "accent" as const : undefined, sub: verdictShort(r.verdict) }))} />
-      <ChartCard title="SlateQ's extra watch time, by viewer behaviour" subtitle={`${N0} candidates, ${K0} shown. Lines on the bars are 95% intervals.`}>
+      <ChartCard title="SlateQ's extra watch time, by viewer behaviour" subtitle={`${N0} source={[SRC.rq3Gaps]} candidates, ${K0} shown. Lines on the bars are 95% intervals.`}>
         <GapBars rows={rows.map((r, i) => ({ label: RUNG[RUNGS[i]], sub: verdictShort(r.verdict), mean: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high, color: i < 3 ? COLOR.slateq : COLOR.random }))} />
       </ChartCard>
       <Shows items={[
@@ -143,7 +145,7 @@ const RQ3: Finding = {
 /* ------------------------------------------------------------------ E1 */
 const E1A = "E1: SlateQ - learned-myopic, both lr 1e-3", E1B = "E1: SlateQ - learned-myopic, both lr 2.5e-4";
 const E1: Finding = {
-  id: "e1", kicker: "E1", explo: true, title: "Same learning speed", question: "Is the win only because the two agents used different learning rates?",
+  id: "e1", sources: [SRC.p6Gaps, SRC.rq2Gaps], kicker: "E1", explo: true, title: "Same learning speed", question: "Is the win only because the two agents used different learning rates?",
   headline: (s) => { const all = [10, 80].flatMap((n) => [gap(s, "phase6b", E1A, n, 3)!, gap(s, "phase6b", E1B, n, 3)!]);
     return { value: `${all.filter((r) => r.verdict === "A higher").length} of ${all.length}`, unit: "comparisons with matched learning rates won clearly", verdict: <Pill tone={all.every((r) => r.verdict === "A higher") ? "success" : "neutral"}>Clear: SlateQ higher in {all.filter((r) => r.verdict === "A higher").length} of {all.length}</Pill> }; },
   Detail: ({ site }) => {
@@ -156,7 +158,7 @@ const E1: Finding = {
       ];
     });
     return <>
-      <ChartCard title="SlateQ vs learned myopic, same learning rate" subtitle="3 shown. Lines on the bars are 95% intervals."><GapBars rows={rows} /></ChartCard>
+      <ChartCard title="SlateQ vs learned myopic, same learning rate" subtitle="3 shown. Lines on the bars are 95% intervals." source={[SRC.p6Gaps, SRC.rq2Gaps]}><GapBars rows={rows} /></ChartCard>
       <Shows items={[
         "With the same learning rate for both, SlateQ still wins clearly, at 10 and 80 candidates.",
       ]} />
@@ -169,10 +171,10 @@ const E1: Finding = {
 const GAM = ["0", "0.5", "0.9", "0.95", "0.99"];
 const e2 = (s: Site, g: string, n: number) => g === "0" ? gap(s, "phase6b", "E1: learned-myopic (lr 1e-3) - oracle-myopic", n, 3) : gap(s, "phase6b", `E2: gamma ${g} - oracle-myopic`, n, 3);
 const E2: Finding = {
-  id: "e2", kicker: "E2", explo: true, title: "How far to look ahead", question: "SlateQ with different planning horizons (γ), compared with the perfect click-chaser.",
+  id: "e2", sources: [SRC.p6Gaps], kicker: "E2", explo: true, title: "How far to look ahead", question: "SlateQ with different planning horizons (γ), compared with the perfect click-chaser.",
   headline: (s) => { const g = e2(s, "0.95", 80)!; return { value: sgn(g.mean_diff), unit: "γ = 0.95 vs the best click-chaser, 80 candidates", verdict: <VerdictPill v={g.verdict} a="γ 0.95" /> }; },
   Detail: ({ site }) => <>
-    <ChartCard title="Extra watch time over the best click-chaser, by γ" subtitle="γ = 0 means no planning. Lines are 95% intervals."
+    <ChartCard title="Extra watch time over the best click-chaser, by γ" subtitle="γ = 0 means no planning. Lines are 95% intervals." source={[SRC.p6Gaps]}
       footer={<Legend items={[{ label: "80 candidates", color: COLOR.slateq }, { label: "10 candidates", color: COLOR.learned_myopic }]} />}>
       <LineChart xs={GAM.map((g) => `γ ${g}`)} series={[80, 10].map((n) => ({ name: `${n} candidates`, color: n === 80 ? COLOR.slateq : COLOR.learned_myopic,
         pts: GAM.map((g) => { const r = e2(site, g, n); return r ? { y: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high } : null; }) }))} height={260} />
@@ -190,7 +192,7 @@ const E2: Finding = {
 const E3C = ["E3: SlateQ - learned-myopic, both 600K steps", "E3: SlateQ (600K) - oracle-myopic", "E3: learned-myopic (600K) - oracle-myopic", "E3: learned-myopic 600K - 300K", "E3: SlateQ 600K - 300K"];
 const E3L = ["SlateQ vs learned myopic, 600K steps", "SlateQ (600K) vs oracle myopic", "Learned myopic (600K) vs oracle", "Learned myopic: 600K vs 300K", "SlateQ: 600K vs 300K"];
 const E3: Finding = {
-  id: "e3", kicker: "E3", explo: true, title: "Twice the training", question: "Was the click-chaser just under-trained with 80 candidates?",
+  id: "e3", sources: [SRC.p6Gaps, SRC.rq2Gaps], kicker: "E3", explo: true, title: "Twice the training", question: "Was the click-chaser just under-trained with 80 candidates?",
   headline: (s) => { const g = gap(s, "phase6b", E3C[2], 80, 3)!; return { value: sgn(g.mean_diff), unit: "learned vs perfect click-chaser after 600K steps", verdict: <VerdictPill v={g.verdict} a="learned" /> }; },
   Detail: ({ site }) => {
     const before = gap(site, "rq2", "learned-myopic - oracle-myopic", 80, 3)!, after = gap(site, "phase6b", E3C[2], 80, 3)!;
@@ -200,7 +202,7 @@ const E3: Finding = {
         { label: "Learned − oracle, 600K steps", value: sgn(after.mean_diff), sub: verdictShort(after.verdict), tone: "accent" },
         { label: "SlateQ − oracle, 600K steps", value: sgn(gap(site, "phase6b", E3C[1], 80, 3)!.mean_diff), sub: verdictShort(gap(site, "phase6b", E3C[1], 80, 3)!.verdict) },
       ]} />
-      <ChartCard title="80 candidates, 3 shown" subtitle="Lines on the bars are 95% intervals.">
+      <ChartCard title="80 candidates, 3 shown" subtitle="Lines on the bars are 95% intervals." source={[SRC.p6Gaps, SRC.rq2Gaps]}>
         <GapBars rows={E3C.map((c, i) => { const r = gap(site, "phase6b", c, 80, 3)!; return { label: E3L[i], sub: verdictShort(r.verdict), mean: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high, color: i < 2 ? COLOR.slateq : i < 4 ? COLOR.learned_myopic : COLOR.random }; })} />
       </ChartCard>
       <Shows items={["With twice the training the learned click-chaser gets closer to the perfect one.", "SlateQ does not change and still wins clearly."]} />
@@ -211,14 +213,14 @@ const E3: Finding = {
 
 /* ------------------------------------------------------------------ E4 */
 const E4: Finding = {
-  id: "e4", kicker: "E4", explo: true, title: "The paper's own cascade", question: "The SlateQ paper used a milder top-down viewer model. Does the win come back?",
+  id: "e4", sources: [SRC.p6Gaps, SRC.p6Agents, SRC.rq3Agents], kicker: "E4", explo: true, title: "The paper's own cascade", question: "The SlateQ paper used a milder top-down viewer model. Does the win come back?",
   headline: (s) => { const g = gap(s, "phase6b", "E4: SlateQ - learned-myopic", N0, K0, "paper_cascade")!; return { value: sgn(g.mean_diff), unit: "under the SlateQ paper's cascade", verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
   Detail: ({ site }) => {
     const sev = gap(site, "rq3", PRIMARY, N0, K0, "severe_cascade")!;
     const pl = gap(site, "phase6b", "E4: SlateQ - learned-myopic", N0, K0, "paper_cascade")!, po = gap(site, "phase6b", "E4: SlateQ - oracle-myopic", N0, K0, "paper_cascade")!;
     const rnd = (c: string, sec: "rq3" | "phase6b") => agentRow(site, sec, "random", N0, K0, c)?.mean_total_reward;
     return <>
-      <ChartCard title="SlateQ's extra watch time under two top-down viewer models" subtitle={`${N0} candidates, ${K0} shown. Lines on the bars are 95% intervals.`}>
+      <ChartCard title="SlateQ's extra watch time under two top-down viewer models" subtitle={`${N0} source={[SRC.p6Gaps, SRC.rq3Gaps]} candidates, ${K0} shown. Lines on the bars are 95% intervals.`}>
         <GapBars rows={[
           { label: "RecSim's cascade (RQ3)", sub: verdictShort(sev.verdict), mean: sev.mean_diff, lo: sev.ci95_low, hi: sev.ci95_high, color: COLOR.random },
           { label: "Paper's cascade: vs learned myopic", sub: verdictShort(pl.verdict), mean: pl.mean_diff, lo: pl.ci95_low, hi: pl.ci95_high, color: COLOR.slateq },
@@ -228,6 +230,7 @@ const E4: Finding = {
       <Card title="Why the two cascades differ">
         <DL items={[["Viewers as assumed", <>Random recommender watch time {fmt(rnd("matched", "rq3"))}</>], ["Paper's cascade", <>Random recommender watch time {fmt(rnd("paper_cascade", "phase6b"))}</>], ["RecSim's cascade", <>Random recommender watch time {fmt(rnd("severe_cascade", "rq3"))}</>]]} />
         <p className="mt-3 text-[13px] text-muted">RecSim's cascade makes clicks rare; the paper's keeps them common, so quality can still extend sessions.</p>
+        <Source files={[SRC.rq3Agents, SRC.p6Agents]} className="mt-3" />
       </Card>
       <NotShow>That SlateQ copes with any viewer behaviour. This is our implementation of the paper's description, not a copy of its numbers.</NotShow>
     </>;
@@ -253,9 +256,9 @@ function E5Detail({ site }: { site: Site }) {
       <div className="ml-auto"><Legend items={AGENTS.map((a) => ({ label: NAME[a], color: COLOR[a] }))} /></div>
     </div>
     <div className="grid gap-4 lg:grid-cols-3">
-      <ChartCard title="Click rate" subtitle="Clicks per recommendation"><Bars groups={metric("click_rate")} digits={3} signed={false} height={200} /></ChartCard>
-      <ChartCard title="Videos watched per session"><Bars groups={metric("clicks_per_session")} digits={1} signed={false} height={200} /></ChartCard>
-      <ChartCard title="Watch time per session"><Bars groups={metric("watch_per_session")} digits={1} signed={false} height={200} /></ChartCard>
+      <ChartCard title="Click rate" subtitle="Clicks per recommendation" source={[SRC.p6Clicks]}><Bars groups={metric("click_rate")} digits={3} signed={false} height={200} /></ChartCard>
+      <ChartCard title="Videos watched per session" source={[SRC.p6Clicks]}><Bars groups={metric("clicks_per_session")} digits={1} signed={false} height={200} /></ChartCard>
+      <ChartCard title="Watch time per session" source={[SRC.p6Clicks]}><Bars groups={metric("watch_per_session")} digits={1} signed={false} height={200} /></ChartCard>
     </div>
     <div className="card overflow-hidden">
       <div className="card-head"><h2 className="card-title">Pattern across all settings</h2><span className="count">{conds.length} settings per comparison</span></div>
@@ -263,13 +266,14 @@ function E5Detail({ site }: { site: Site }) {
         <thead className="bg-surface-alt"><tr className="border-b border-line">{["Comparison", "Pattern", "Settings"].map((h, i) => <th key={h} className={`px-3 py-2.5 text-[12px] font-medium text-faint first:pl-4 ${i === 2 ? "text-right" : "text-left"}`}>{h}</th>)}</tr></thead>
         <tbody className="divide-y divide-line">{[...pats.entries()].sort((a, b) => b[1] - a[1]).map(([kk, c]) => { const [cmp, p] = kk.split("|"); return <tr key={kk} className="hover:bg-hover-row"><td className="h-10 px-3 pl-4 whitespace-nowrap">{cmp.replace(" - ", " vs ")}</td><td className="px-3">{p}</td><td className="px-3 text-right tabular-nums">{c}</td></tr>; })}</tbody>
       </table></div>
+      <Source files={[SRC.p6ClickGaps]} className="border-t border-line px-4 py-2.5" />
     </div>
     <Shows items={["All recommenders get about the same click rate.", "The click-chasers lose because sessions end sooner: fewer videos watched in total."]} />
     <NotShow>Anything about real platforms. In this simulator every video has the same length.</NotShow>
   </>;
 }
 const E5: Finding = {
-  id: "e5", kicker: "E5", explo: true, title: "Clicks vs watch time", question: "Does the click-chaser get more clicks but less watch time?",
+  id: "e5", sources: [SRC.p6Clicks, SRC.p6ClickGaps], kicker: "E5", explo: true, title: "Clicks vs watch time", question: "Does the click-chaser get more clicks but less watch time?",
   headline: (s) => { const o = clickRow(s, "oracle_myopic", 80, 3, "matched"), q = clickRow(s, "slateq", 80, 3, "matched");
     const g = s.phase6b.clicks_watch_gaps.filter((r) => r.comparison === "oracle-myopic - SlateQ");
     return { value: `${fmt(o?.clicks_per_session, 1)} vs ${fmt(q?.clicks_per_session, 1)}`, unit: "videos watched per session: click-chaser vs SlateQ",

@@ -1,6 +1,7 @@
 // Small dependency-free charts: blue for the data under study, neutrals for the rest, hairline grid, a hover readout.
 import { useEffect, useRef, useState } from "react";
 import { sgn } from "@/lib/data";
+import { Source } from "./Source";
 
 export const BRAND = "var(--color-data)";
 const NoData = () => <div className="grid h-44 place-items-center text-[13px] text-faint">No data</div>;
@@ -16,12 +17,13 @@ function useWidth(min = 260) {
   return [ref, w] as const;
 }
 
-export function ChartCard({ title, subtitle, children, actions, footer }: { title: string; subtitle?: React.ReactNode; children: React.ReactNode; actions?: React.ReactNode; footer?: React.ReactNode }) {
+export function ChartCard({ title, subtitle, children, actions, footer, source }: { title: string; subtitle?: React.ReactNode; children: React.ReactNode; actions?: React.ReactNode; footer?: React.ReactNode; source?: string[] }) {
   return (
     <section className="card flex h-full w-full flex-col p-4">
       <div className="mb-3 flex flex-wrap items-start gap-2"><div className="min-w-0 flex-1"><h2 className="card-title">{title}</h2>{subtitle && <div className="meta">{subtitle}</div>}</div>{actions}</div>
       <div className="flex flex-1 flex-col justify-end">{children}</div>
       {footer && <div className="mt-3 border-t border-line pt-3">{footer}</div>}
+      {source && <Source files={source} className="mt-3" />}
     </section>
   );
 }

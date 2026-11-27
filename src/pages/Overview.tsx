@@ -2,7 +2,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { CELL, COLOR, PRIMARY, RUNG, RUNGS, VS_ORACLE, gap, pct, sgn, useSite } from "@/lib/data";
+import { CELL, COLOR, PRIMARY, RUNG, RUNGS, SRC, VS_ORACLE, gap, pct, sgn, useSite } from "@/lib/data";
+import { Source } from "@/components/Source";
+import { useTour } from "@/lib/tour";
+import { Compass } from "lucide-react";
 import { ErrorState, Loading, StatStrip, Tabs } from "@/components/common";
 import { Bars, ChartCard, GapBars, Legend } from "@/components/Charts";
 import { Term } from "@/components/Help";
@@ -11,6 +14,7 @@ import { NextStep, PATH, StepLabel } from "@/components/Path";
 export default function Overview() {
   const site = useSite();
   const [k, setK] = useState("3");
+  const tour = useTour();
   if (site.error) return <ErrorState error={site.error} />;
   if (!site.data) return <Loading />;
   const S = site.data;
@@ -29,6 +33,7 @@ export default function Overview() {
           <b className="font-medium text-ink"> SlateQ</b> (Ie et al., 2019) also plans for how long the viewer stays. I compared them in Google's RecSim simulator,
           on simulated viewers only.
         </p>
+        <button className="btn mt-3" onClick={() => tour.start(0)}><Compass className="h-4 w-4" />Open the user guide</button>
       </div>
 
       <StatStrip items={[
@@ -37,16 +42,17 @@ export default function Overview() {
         { label: "RQ2 · 80 candidates, vs the best click-chaser", value: sgn(g80.mean_diff), sub: <Term id="oracle">oracle myopic</Term> },
         { label: "RQ3 · viewers who scan top-down", value: sgn(sev.mean_diff), sub: sev.verdict === "A higher" ? "clear win" : "not a clear win" },
       ]} />
+      <Source files={[SRC.rq2Gaps, SRC.rq3Gaps]} className="-mt-3" />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="RQ2 · More candidates, bigger advantage" subtitle="SlateQ's extra watch time per session"
           actions={<Tabs ariaLabel="Videos shown" active={k} onChange={setK} items={["2", "3", "5"].map((x) => ({ key: x, label: `${x} shown` }))} />}
-          footer={<Legend items={[{ label: "vs learned myopic", color: COLOR.slateq }, { label: "vs oracle myopic", color: COLOR.learned_myopic }]} />}>
+          footer={<Legend items={[{ label: "vs learned myopic", color: COLOR.slateq }, { label: "vs oracle myopic", color: COLOR.learned_myopic }]} />} source={[SRC.rq2Gaps]}>
           <Bars height={230} groups={ns.map((n) => { const a = gap(S, "rq2", PRIMARY, n, Number(k))!, b = gap(S, "rq2", VS_ORACLE, n, Number(k))!;
             return { label: `${n}`, sub: a.control ? "control" : undefined, bars: [{ name: "vs learned", value: a.mean_diff, lo: a.ci95_low, hi: a.ci95_high, color: COLOR.slateq }, { name: "vs oracle", value: b.mean_diff, lo: b.ci95_low, hi: b.ci95_high, color: COLOR.learned_myopic }] }; })} />
           <div className="meta mt-1 text-center">number of candidates</div>
         </ChartCard>
-        <ChartCard title="RQ3 · When viewers behave differently" subtitle={`SlateQ's extra watch time, ${CELL[0]} candidates, ${CELL[1]} shown`}>
+        <ChartCard title="RQ3 · When viewers behave differently" subtitle={`SlateQ's extra watch time, ${CELL[0]} candidates, ${CELL[1]} shown`} source={[SRC.rq3Gaps]}>
           <GapBars rows={RUNGS.map((c, i) => { const r = gap(S, "rq3", PRIMARY, CELL[0], CELL[1], c)!; return { label: RUNG[c], mean: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high, color: i < 3 ? COLOR.slateq : COLOR.random }; })} />
         </ChartCard>
       </div>

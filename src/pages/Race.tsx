@@ -6,6 +6,8 @@ import { PlayerBar, ViewerPicker } from "@/components/Replay";
 import { Pill } from "@/components/Pill";
 import { Hint, Term } from "@/components/Help";
 import { NextStep, StepLabel } from "@/components/Path";
+import { Source } from "@/components/Source";
+import { traceFile } from "@/lib/data";
 
 export default function Race() {
   const site = useSite();
@@ -70,6 +72,7 @@ export default function Race() {
               </div>))}
           </div>
         </Card>)}
+      <Source files={AGENTS.map((x) => traceFile(x, r.seed))} />
       <PlayerBar max={max} />
       <NextStep to="/race" />
     </div>

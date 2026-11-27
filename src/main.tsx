@@ -5,6 +5,7 @@ import "./styles.css";
 import { Layout } from "./components/Layout";
 import { Loading } from "./components/common";
 import { ReplayProvider } from "./lib/replay";
+import { TourProvider } from "./lib/tour";
 
 const Overview = lazy(() => import("./pages/Overview"));
 const Watch = lazy(() => import("./pages/Watch"));
@@ -19,6 +20,7 @@ const Page = ({ children }: { children: React.ReactNode }) => <Suspense fallback
 
 function App() {
   return (
+    <TourProvider>
     <ReplayProvider>
       <Routes>
         <Route element={<Layout />}>
@@ -33,6 +35,7 @@ function App() {
         </Route>
       </Routes>
     </ReplayProvider>
+    </TourProvider>
   );
 }
 

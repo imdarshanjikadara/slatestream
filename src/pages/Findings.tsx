@@ -5,6 +5,7 @@ import { FINDINGS, FOLLOW, MAIN, type Finding } from "@/lib/findings";
 import { ErrorState, Loading, PageHeader } from "@/components/common";
 import { SplitItem, SplitList, SplitView } from "@/components/SplitView";
 import { Exploratory } from "@/components/Pill";
+import { Source } from "@/components/Source";
 import { Hint, Term } from "@/components/Help";
 import { NextStep, StepLabel } from "@/components/Path";
 
@@ -48,6 +49,7 @@ function Detail({ f, S }: { f: Finding; S: Site }) {
           <span className="text-[13px] text-faint">{h.unit}</span>
           <span className="ml-auto">{h.verdict}</span>
         </div>
+        <Source files={f.sources} className="mt-2" />
       </section>
       <f.Detail site={S} />
     </div>

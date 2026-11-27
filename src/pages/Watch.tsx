@@ -1,12 +1,13 @@
 // Watch side by side: one recorded viewer, two recommenders, step by step.
 import { useState } from "react";
-import { AGENTS, CELL, NAME, PRIMARY, ROLE, COLOR, fmt, gap, sgn, int, topicName, useSite, useTraces, type Agent, type Session, type Site } from "@/lib/data";
+import { SRC, traceFile, AGENTS, CELL, NAME, PRIMARY, ROLE, COLOR, fmt, gap, sgn, int, topicName, useSite, useTraces, type Agent, type Session, type Site } from "@/lib/data";
 import { useReplay } from "@/lib/replay";
 import { ErrorState, Loading, Notice, PageHeader } from "@/components/common";
 import { BudgetMeter, Cover, History, PlayerBar, VideoTile, ViewerPicker } from "@/components/Replay";
 import { VerdictPill } from "@/components/Pill";
 import { Hint, Term } from "@/components/Help";
 import { NextStep, StepLabel } from "@/components/Path";
+import { Source } from "@/components/Source";
 import { BookOpenText } from "lucide-react";
 
 export default function Watch() {
@@ -37,6 +38,7 @@ export default function Watch() {
         <Pane agent={b} onAgent={setB} e={B} max={max} bmax={bmax} />
       </div>
       <Story a={a} b={b} A={A} B={B} />
+      <Source files={[traceFile(a, r.seed), traceFile(b, r.seed), SRC.rq2Gaps]} />
       {r.t >= max && <Outcome site={S} a={a} b={b} A={A} B={B} />}
       <PlayerBar max={max} />
       <NextStep to="/watch" />
