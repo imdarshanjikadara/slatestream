@@ -9,7 +9,7 @@ export const NAME: Record<Agent, string> = { slateq: "SlateQ", learned_myopic: "
 export const ROLE: Record<Agent, string> = {
   slateq: "Plans ahead for the whole session (γ = 0.99)",
   learned_myopic: "Learns to chase the next click (same network, γ = 0)",
-  oracle_myopic: "Perfect click-chaser: sees the viewer's hidden tastes",
+  oracle_myopic: "Perfect click-chaser: is given the exact click model",
   random: "Shows random videos",
 };
 /** Data colours: blue for the method under study, neutrals for the baselines (reference: "colour for data, neutral for the rest"). */

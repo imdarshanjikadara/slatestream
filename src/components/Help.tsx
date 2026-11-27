@@ -11,7 +11,7 @@ export const GLOSSARY: Record<string, { term: string; text: string }> = {
   gamma: { term: "γ (gamma)", text: "How far ahead a recommender plans. γ = 0 only cares about the next click; γ = 0.99 also values what happens many steps later." },
   ci: { term: "95% confidence interval", text: "The range the true average difference very likely lies in, given the 5 runs. If it does not include 0, the difference is unlikely to be luck." },
   clear: { term: "Clear result", text: "The rule fixed before any run: a difference counts as clear only if its 95% interval excludes 0 and all 5 runs agree on the direction." },
-  oracle: { term: "Oracle myopic", text: "A cheating click-chaser that can see the viewer's hidden tastes. It is the best possible recommender that only thinks about the next click." },
+  oracle: { term: "Oracle myopic", text: "A click-chaser that is handed the simulator's exact click model, so it never has to learn how viewers choose. Every recommender sees the viewer's tastes; only the oracle knows exactly how they turn into clicks. It is the best possible recommender that only thinks about the next click." },
   learned: { term: "Learned myopic", text: "The same learning code as SlateQ, but told to care only about the next click (γ = 0). It is the fair comparison for SlateQ." },
   N: { term: "N (candidates)", text: "How many fresh videos the recommender can choose from at each step." },
   k: { term: "k (slate size)", text: "How many videos are shown at once." },

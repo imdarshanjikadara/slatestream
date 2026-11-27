@@ -14,7 +14,7 @@ export default function Guide() {
       <PageHeader title="How it works" subtitle="What SlateStream shows, where the numbers come from, and what they cannot tell you." />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="The simulated platform">
-          <p className="text-[13px] text-muted">SlateStream is a front end for Google's RecSim "Interest Evolution" simulator. Each simulated viewer has hidden tastes for 20 topics and a limited time budget. Every step the recommender sees {CELL[0]} fresh candidate videos and puts {CELL[1]} on screen (a slate). The viewer watches at most one.</p>
+          <p className="text-[13px] text-muted">SlateStream is a front end for Google's RecSim "Interest Evolution" simulator. Each simulated viewer has tastes for 20 topics, which every recommender can see, and a limited time budget, which none of them can see. Every step the recommender sees {CELL[0]} fresh candidate videos and puts {CELL[1]} on screen (a slate). The viewer watches at most one.</p>
         </Card>
         <Card title="Why planning can help">
           <p className="text-[13px] text-muted">Viewers click on topics they like. Each video also has a hidden quality: good videos give some time budget back, poor ones use extra. A recommender that only chases the next click ignores quality; one that plans ahead can pick equally clickable but better videos, so the session lasts longer.</p>
