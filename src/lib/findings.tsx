@@ -21,7 +21,7 @@ function AgentTable({ site, sec, n, k, cond = "matched" }: { site: Site; sec: "r
   const rows = AGENTS.map((a) => agentRow(site, sec, a, n, k, cond)).filter(Boolean);
   return (
     <div className="card overflow-hidden">
-      <div className="card-head"><h2 className="card-title">Average per test viewer</h2><span className="count">N = {n}, k = {k}</span></div>
+      <div className="card-head"><h2 className="card-title">Average per test viewer</h2><span className="count">{n} candidates, {k} shown</span></div>
       <div className="overflow-auto">
         <table className="tbl w-full text-[13px]">
           <thead className="bg-surface-alt"><tr className="border-b border-line">
@@ -46,7 +46,7 @@ function AgentTable({ site, sec, n, k, cond = "matched" }: { site: Site; sec: "r
 /* ------------------------------------------------------------------ RQ1 */
 const RQ1: Finding = {
   id: "rq1", kicker: "RQ1", title: "Planning beats click-chasing", question: "Does SlateQ keep viewers watching longer than a recommender that chases the next click?",
-  headline: (s) => { const g = gap(s, "rq2", PRIMARY, N0, K0)!; return { value: sgn(g.mean_diff), unit: `watch time per session, N = ${N0}, k = ${K0}`, verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
+  headline: (s) => { const g = gap(s, "rq2", PRIMARY, N0, K0)!; return { value: sgn(g.mean_diff), unit: `more watch time per session (${N0} candidates, ${K0} shown)`, verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
   Detail: ({ site }) => {
     const g = gap(site, "rq2", PRIMARY, N0, K0)!, go = gap(site, "rq2", VS_ORACLE, N0, K0)!, gl = gap(site, "rq2", "learned-myopic - oracle-myopic", N0, K0)!;
     return <>
@@ -56,7 +56,7 @@ const RQ1: Finding = {
         { label: "SlateQ − oracle myopic", value: sgn(go.mean_diff), sub: verdictShort(go.verdict) },
         { label: "Learned − oracle myopic", value: sgn(gl.mean_diff), sub: verdictShort(gl.verdict) },
       ]} />
-      <ChartCard title="Difference in watch time per session" subtitle="Bars are means over 5 seeds; whiskers are 95% confidence intervals">
+      <ChartCard title="Difference in watch time per session" subtitle="Average over 5 runs. Lines on the bars are 95% intervals.">
         <GapBars rows={[
           { label: "SlateQ vs learned myopic", sub: "the fair comparison", mean: g.mean_diff, lo: g.ci95_low, hi: g.ci95_high, color: COLOR.slateq },
           { label: "SlateQ vs oracle myopic", sub: "vs the perfect click-chaser", mean: go.mean_diff, lo: go.ci95_low, hi: go.ci95_high, color: COLOR.slateq },
@@ -65,11 +65,11 @@ const RQ1: Finding = {
       </ChartCard>
       <AgentTable site={site} sec="rq2" n={N0} k={K0} />
       <Shows items={[
-        <>SlateQ is clearly ahead of the learned click-chaser ({ci(g)}, all 5 seeds agree) and of the perfect click-chaser ({sgn(go.mean_diff)}).</>,
-        <>The learned and perfect click-chasers are {gl.verdict === "no clear difference" ? "not clearly different" : "different"} ({sgn(gl.mean_diff)}), so the gap is about planning, not a weak baseline.</>,
-        <>How: SlateQ's watched videos have higher hidden quality, which gives time back, so sessions last a little longer.</>,
+        <>SlateQ wins against both click-chasers; all 5 runs agree.</>,
+        <>The learned and perfect click-chasers score the same ({sgn(gl.mean_diff)}), so the gap comes from planning, not a weak baseline.</>,
+        <>Why: SlateQ picks higher-quality videos, which give time back, so sessions last a little longer.</>,
       ]} />
-      <NotShow>The gain is small in relative terms and says nothing about real users or any real platform. This comparison repeats the SlateQ paper's own setting on purpose: it is a replication with stricter statistics.</NotShow>
+      <NotShow>The gain is about 1%, and it is about simulated viewers only. This setting repeats the SlateQ paper's own experiment on purpose.</NotShow>
     </>;
   },
 };
@@ -83,62 +83,59 @@ function RQ2Detail({ site }: { site: Site }) {
   const [n, setN] = useState(80);
   const nn = ns.includes(n) ? n : ns[ns.length - 1];
   const p = gap(site, "rq2", PRIMARY, nn, k)!, o = gap(site, "rq2", VS_ORACLE, nn, k)!;
-  const grid = gs.filter((r) => r.comparison === PRIMARY && !r.control);
   const groups: BarGroup[] = ns.map((x) => {
     const a = gap(site, "rq2", PRIMARY, x, k)!, b = gap(site, "rq2", VS_ORACLE, x, k)!;
-    return { label: `N = ${x}`, key: String(x), sub: a.control ? "control" : undefined, bars: [
+    return { label: `${x}`, key: String(x), sub: a.control ? "control" : undefined, bars: [
       { name: "vs learned myopic", value: a.mean_diff, lo: a.ci95_low, hi: a.ci95_high, color: COLOR.slateq },
       { name: "vs oracle myopic", value: b.mean_diff, lo: b.ci95_low, hi: b.ci95_high, color: COLOR.learned_myopic }] };
   });
   return <>
     <div className="flex flex-wrap items-center gap-3">
-      <Tabs ariaLabel="Videos shown" active={String(k)} onChange={(v) => setK(Number(v))} items={ks.map((x) => ({ key: String(x), label: `k = ${x} shown` }))} />
-      <Tabs ariaLabel="Candidates" active={String(nn)} onChange={(v) => setN(Number(v))} items={ns.map((x) => ({ key: String(x), label: `N = ${x}` }))} />
+      <Tabs ariaLabel="Videos shown" active={String(k)} onChange={(v) => setK(Number(v))} items={ks.map((x) => ({ key: String(x), label: `${x} shown` }))} />
+      <Tabs ariaLabel="Candidates" active={String(nn)} onChange={(v) => setN(Number(v))} items={ns.map((x) => ({ key: String(x), label: `${x} candidates` }))} />
     </div>
     <StatStrip items={[
-      { label: `SlateQ − learned myopic, N = ${nn}, k = ${k}`, value: sgn(p.mean_diff), tone: "accent", sub: ci(p) },
-      { label: "Verdict", value: <span className="text-[15px]"><VerdictPill v={p.verdict} a="SlateQ" /></span>, sub: p.control ? "control: every candidate is shown" : undefined },
-      { label: "SlateQ − oracle myopic", value: sgn(o.mean_diff), sub: verdictShort(o.verdict) },
-      { label: "Settings where SlateQ is clearly higher", value: `${grid.filter((r) => r.verdict === "A higher").length} of ${grid.length}`, sub: "excluding the k = N control" },
+      { label: `vs learned myopic · ${nn} candidates, ${k} shown`, value: sgn(p.mean_diff), tone: "accent", sub: <>{ci(p)} · {verdictShort(p.verdict)}{p.control ? " (all candidates shown)" : ""}</> },
+      { label: "vs oracle myopic", value: sgn(o.mean_diff), sub: verdictShort(o.verdict) },
     ]} />
-    <ChartCard title={`SlateQ advantage by number of candidates, k = ${k}`} subtitle="Click a group to select it. Whiskers are 95% confidence intervals."
-      footer={<Legend items={[{ label: "vs learned myopic (the fair comparison)", color: COLOR.slateq }, { label: "vs oracle myopic (the cleaner measure of planning)", color: COLOR.learned_myopic }]} />}>
+    <ChartCard title={`SlateQ's extra watch time, ${k} shown`} subtitle="Click a bar group to select it. Lines on the bars are 95% intervals."
+      footer={<Legend items={[{ label: "vs learned myopic", color: COLOR.slateq }, { label: "vs oracle myopic", color: COLOR.learned_myopic }]} />}>
       <Bars groups={groups} height={260} onPick={(x) => setN(Number(x))} active={String(nn)} />
+      <div className="meta mt-1 text-center">number of candidates</div>
     </ChartCard>
     <AgentTable site={site} sec="rq2" n={nn} k={k} />
     <Shows items={[
-      "SlateQ is clearly ahead of the learned click-chaser in every setting with a real choice, and the gap grows steeply with N.",
-      "At a fixed N, showing more videos at once (bigger k) makes the gap smaller.",
-      "When every candidate is shown (k = N) there is nothing to choose and the gap is not clearly different from zero, as it must be.",
-      "Two things happen at large N: SlateQ improves against the perfect click-chaser, and the learned click-chaser falls behind the perfect one. The comparison against the oracle is the cleaner measure of planning.",
+      "The more candidates, the bigger SlateQ's advantage. Showing more videos at once makes it smaller.",
+      "When all candidates are shown there is nothing to choose, and the gap is zero, as it should be.",
+      "At 80 candidates part of the gap is the learned click-chaser falling behind; the comparison with the oracle is the cleaner measure.",
     ]} />
-    <NotShow>It does not show the trend beyond N = 80. "Catalog size" here means fresh candidates drawn every step (RecSim has no fixed catalogue), and the training budget was set once at N = 10.</NotShow>
+    <NotShow>What happens beyond 80 candidates. "Candidates" are fresh videos drawn each step, not a fixed catalogue.</NotShow>
   </>;
 }
 const RQ2: Finding = {
-  id: "rq2", kicker: "RQ2 · new", title: "More choice, bigger gap", question: "How does the advantage change with more candidates (N) and more videos shown (k)?",
+  id: "rq2", kicker: "RQ2", title: "More choice, bigger gap", question: "How does the advantage change with more candidates (N) and more videos shown (k)?",
   headline: (s) => { const g = gap(s, "rq2", PRIMARY, 80, 3)!; const grid = s.rq2.gaps.filter((r) => r.comparison === PRIMARY && !r.control);
-    return { value: sgn(g.mean_diff), unit: "watch time per session, N = 80, k = 3", verdict: <Pill tone={grid.every((r) => r.verdict === "A higher") ? "success" : "neutral"}>Clear in {grid.filter((r) => r.verdict === "A higher").length} of {grid.length} settings</Pill> }; },
+    return { value: sgn(g.mean_diff), unit: "more watch time per session (80 candidates, 3 shown)", verdict: <Pill tone={grid.every((r) => r.verdict === "A higher") ? "success" : "neutral"}>Clear in {grid.filter((r) => r.verdict === "A higher").length} of {grid.length} settings</Pill> }; },
   Detail: RQ2Detail,
 };
 
 /* ------------------------------------------------------------------ RQ3 */
 const RQ3: Finding = {
   id: "rq3", kicker: "RQ3", title: "When viewers behave differently", question: "SlateQ assumes how viewers choose. What if they choose differently?",
-  headline: (s) => { const g = gap(s, "rq3", PRIMARY, N0, K0, "severe_cascade")!; return { value: sgn(g.mean_diff), unit: "gap under the most different behaviour", verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
+  headline: (s) => { const g = gap(s, "rq3", PRIMARY, N0, K0, "severe_cascade")!; return { value: sgn(g.mean_diff), unit: "when viewers scan top-down", verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
   Detail: ({ site }) => {
     const rows = RUNGS.map((c) => gap(site, "rq3", PRIMARY, N0, K0, c)!);
     const rm = agentRow(site, "rq3", "random", N0, K0, "matched"), rs = agentRow(site, "rq3", "random", N0, K0, "severe_cascade");
     return <>
       <StatStrip items={rows.map((r, i) => ({ label: RUNG[RUNGS[i]], value: sgn(r.mean_diff), tone: i === 0 ? "accent" as const : undefined, sub: verdictShort(r.verdict) }))} />
-      <ChartCard title="SlateQ − learned myopic, by how far viewers depart from the assumed behaviour" subtitle={`N = ${N0}, k = ${K0}; whiskers are 95% confidence intervals`}>
+      <ChartCard title="SlateQ's extra watch time, by viewer behaviour" subtitle={`${N0} candidates, ${K0} shown. Lines on the bars are 95% intervals.`}>
         <GapBars rows={rows.map((r, i) => ({ label: RUNG[RUNGS[i]], sub: verdictShort(r.verdict), mean: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high, color: i < 3 ? COLOR.slateq : COLOR.random }))} />
       </ChartCard>
       <Shows items={[
         ...rows.map((r, i) => <><b className="font-medium text-ink">{RUNG[RUNGS[i]]}:</b> {sgn(r.mean_diff)} ({ci(r)}), {verdictShort(r.verdict)}.</>),
         <>Under the severe cascade every recommender earns less (random: {fmt(rs?.mean_total_reward)} vs {fmt(rm?.mean_total_reward)} when viewers behave as assumed).</>,
       ]} />
-      <NotShow>Only one cascade setting was run, so it does not show which part of the cascade removes the advantage. It does not mean the SlateQ paper was wrong: the paper's cascade is different and milder (see E4).</NotShow>
+      <NotShow>Which part of the cascade removes the advantage; only one setting was run. The SlateQ paper's milder cascade gives a clear win (see E4).</NotShow>
     </>;
   },
 };
@@ -148,24 +145,22 @@ const E1A = "E1: SlateQ - learned-myopic, both lr 1e-3", E1B = "E1: SlateQ - lea
 const E1: Finding = {
   id: "e1", kicker: "E1", explo: true, title: "Same learning speed", question: "Is the win only because the two agents used different learning rates?",
   headline: (s) => { const all = [10, 80].flatMap((n) => [gap(s, "phase6b", E1A, n, 3)!, gap(s, "phase6b", E1B, n, 3)!]);
-    return { value: `${all.filter((r) => r.verdict === "A higher").length} of ${all.length}`, unit: "matched-learning-rate gaps that are clearly positive", verdict: <Pill tone={all.every((r) => r.verdict === "A higher") ? "success" : "neutral"}>Clear: SlateQ higher in {all.filter((r) => r.verdict === "A higher").length} of {all.length}</Pill> }; },
+    return { value: `${all.filter((r) => r.verdict === "A higher").length} of ${all.length}`, unit: "comparisons with matched learning rates won clearly", verdict: <Pill tone={all.every((r) => r.verdict === "A higher") ? "success" : "neutral"}>Clear: SlateQ higher in {all.filter((r) => r.verdict === "A higher").length} of {all.length}</Pill> }; },
   Detail: ({ site }) => {
     const rows = [10, 80].flatMap((n) => {
       const a = gap(site, "phase6b", E1A, n, 3)!, b = gap(site, "phase6b", E1B, n, 3)!, m = gap(site, "rq2", PRIMARY, n, 3)!;
       return [
-        { label: `N = ${n}: both lr 1e-3`, sub: verdictShort(a.verdict), mean: a.mean_diff, lo: a.ci95_low, hi: a.ci95_high, color: COLOR.slateq },
-        { label: `N = ${n}: both lr 2.5e-4`, sub: verdictShort(b.verdict), mean: b.mean_diff, lo: b.ci95_low, hi: b.ci95_high, color: COLOR.slateq },
-        { label: `N = ${n}: own tuned rates (RQ2)`, sub: "main result, for reference", mean: m.mean_diff, lo: m.ci95_low, hi: m.ci95_high, color: COLOR.random },
+        { label: `${n} candidates: both lr 1e-3`, sub: verdictShort(a.verdict), mean: a.mean_diff, lo: a.ci95_low, hi: a.ci95_high, color: COLOR.slateq },
+        { label: `${n} candidates: both lr 2.5e-4`, sub: verdictShort(b.verdict), mean: b.mean_diff, lo: b.ci95_low, hi: b.ci95_high, color: COLOR.slateq },
+        { label: `${n} candidates: own tuned rates`, sub: "main result, for reference", mean: m.mean_diff, lo: m.ci95_low, hi: m.ci95_high, color: COLOR.random },
       ];
     });
-    const lo = gap(site, "phase6b", "E1: learned-myopic (lr 1e-3) - oracle-myopic", 80, 3)!;
     return <>
-      <ChartCard title="SlateQ − learned myopic with matched learning rates" subtitle="k = 3; whiskers are 95% confidence intervals"><GapBars rows={rows} /></ChartCard>
+      <ChartCard title="SlateQ vs learned myopic, same learning rate" subtitle="3 shown. Lines on the bars are 95% intervals."><GapBars rows={rows} /></ChartCard>
       <Shows items={[
-        "With both agents at the same learning rate, SlateQ is still clearly ahead at N = 10 and N = 80, at both learning rates.",
-        <>The learned click-chaser at the faster rate is still behind the oracle at N = 80 ({sgn(lo.mean_diff)}, {verdictShort(lo.verdict)}), so the learning rate does not explain its shortfall.</>,
+        "With the same learning rate for both, SlateQ still wins clearly, at 10 and 80 candidates.",
       ]} />
-      <NotShow>The size of the gap at N = 80 still depends on the learning rate; only its direction is robust.</NotShow>
+      <NotShow>That the size of the gap is fixed: at 80 candidates it depends on the learning rate.</NotShow>
     </>;
   },
 };
@@ -175,19 +170,19 @@ const GAM = ["0", "0.5", "0.9", "0.95", "0.99"];
 const e2 = (s: Site, g: string, n: number) => g === "0" ? gap(s, "phase6b", "E1: learned-myopic (lr 1e-3) - oracle-myopic", n, 3) : gap(s, "phase6b", `E2: gamma ${g} - oracle-myopic`, n, 3);
 const E2: Finding = {
   id: "e2", kicker: "E2", explo: true, title: "How far to look ahead", question: "SlateQ with different planning horizons (γ), compared with the perfect click-chaser.",
-  headline: (s) => { const g = e2(s, "0.95", 80)!; return { value: sgn(g.mean_diff), unit: "γ = 0.95 vs oracle myopic, N = 80", verdict: <VerdictPill v={g.verdict} a="γ 0.95" /> }; },
+  headline: (s) => { const g = e2(s, "0.95", 80)!; return { value: sgn(g.mean_diff), unit: "γ = 0.95 vs the best click-chaser, 80 candidates", verdict: <VerdictPill v={g.verdict} a="γ 0.95" /> }; },
   Detail: ({ site }) => <>
-    <ChartCard title="Watch time vs the perfect click-chaser, by planning horizon γ" subtitle="All at learning rate 1e-3; γ = 0 means no planning. Whiskers are 95% confidence intervals."
-      footer={<Legend items={[{ label: "N = 80, k = 3", color: COLOR.slateq }, { label: "N = 10, k = 3", color: COLOR.learned_myopic }]} />}>
-      <LineChart xs={GAM.map((g) => `γ ${g}`)} series={[80, 10].map((n) => ({ name: `N = ${n}`, color: n === 80 ? COLOR.slateq : COLOR.learned_myopic,
+    <ChartCard title="Extra watch time over the best click-chaser, by γ" subtitle="γ = 0 means no planning. Lines are 95% intervals."
+      footer={<Legend items={[{ label: "80 candidates", color: COLOR.slateq }, { label: "10 candidates", color: COLOR.learned_myopic }]} />}>
+      <LineChart xs={GAM.map((g) => `γ ${g}`)} series={[80, 10].map((n) => ({ name: `${n} candidates`, color: n === 80 ? COLOR.slateq : COLOR.learned_myopic,
         pts: GAM.map((g) => { const r = e2(site, g, n); return r ? { y: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high } : null; }) }))} height={260} />
     </ChartCard>
     <div className="card overflow-hidden"><div className="overflow-auto"><table className="tbl w-full text-[13px]">
       <thead className="bg-surface-alt"><tr className="border-b border-line"><th className="px-3 py-2.5 pl-4 text-left text-[12px] font-medium text-faint">Setting</th>{GAM.map((g) => <th key={g} className="px-3 py-2.5 text-right text-[12px] font-medium text-faint">γ {g}</th>)}</tr></thead>
-      <tbody className="divide-y divide-line">{[10, 80].map((n) => <tr key={n} className="hover:bg-hover-row"><td className="h-10 px-3 pl-4">N = {n}, k = 3</td>{GAM.map((g) => { const r = e2(site, g, n); return <td key={g} className="px-3 text-right tabular-nums" title={r ? verdictShort(r.verdict) : ""}>{r ? sgn(r.mean_diff) : "-"}</td>; })}</tr>)}</tbody>
+      <tbody className="divide-y divide-line">{[10, 80].map((n) => <tr key={n} className="hover:bg-hover-row"><td className="h-10 px-3 pl-4">{n} candidates</td>{GAM.map((g) => { const r = e2(site, g, n); return <td key={g} className="px-3 text-right tabular-nums" title={r ? verdictShort(r.verdict) : ""}>{r ? sgn(r.mean_diff) : "-"}</td>; })}</tr>)}</tbody>
     </table></div></div>
     <Shows items={["Every γ above 0 is clearly ahead of the perfect click-chaser in both settings.", "The gain rises with γ and levels off between 0.95 and 0.99."]} />
-    <NotShow>No "best γ" is claimed: only these five values were run and no curve is fitted.</NotShow>
+    <NotShow>A single best γ: only these five values were run.</NotShow>
   </>,
 };
 
@@ -196,7 +191,7 @@ const E3C = ["E3: SlateQ - learned-myopic, both 600K steps", "E3: SlateQ (600K) 
 const E3L = ["SlateQ vs learned myopic, 600K steps", "SlateQ (600K) vs oracle myopic", "Learned myopic (600K) vs oracle", "Learned myopic: 600K vs 300K", "SlateQ: 600K vs 300K"];
 const E3: Finding = {
   id: "e3", kicker: "E3", explo: true, title: "Twice the training", question: "Was the click-chaser just under-trained with 80 candidates?",
-  headline: (s) => { const g = gap(s, "phase6b", E3C[2], 80, 3)!; return { value: sgn(g.mean_diff), unit: "learned vs oracle myopic after 600K steps", verdict: <VerdictPill v={g.verdict} a="learned" /> }; },
+  headline: (s) => { const g = gap(s, "phase6b", E3C[2], 80, 3)!; return { value: sgn(g.mean_diff), unit: "learned vs perfect click-chaser after 600K steps", verdict: <VerdictPill v={g.verdict} a="learned" /> }; },
   Detail: ({ site }) => {
     const before = gap(site, "rq2", "learned-myopic - oracle-myopic", 80, 3)!, after = gap(site, "phase6b", E3C[2], 80, 3)!;
     return <>
@@ -205,11 +200,11 @@ const E3: Finding = {
         { label: "Learned − oracle, 600K steps", value: sgn(after.mean_diff), sub: verdictShort(after.verdict), tone: "accent" },
         { label: "SlateQ − oracle, 600K steps", value: sgn(gap(site, "phase6b", E3C[1], 80, 3)!.mean_diff), sub: verdictShort(gap(site, "phase6b", E3C[1], 80, 3)!.verdict) },
       ]} />
-      <ChartCard title="Comparisons at N = 80, k = 3" subtitle="Whiskers are 95% confidence intervals">
+      <ChartCard title="80 candidates, 3 shown" subtitle="Lines on the bars are 95% intervals.">
         <GapBars rows={E3C.map((c, i) => { const r = gap(site, "phase6b", c, 80, 3)!; return { label: E3L[i], sub: verdictShort(r.verdict), mean: r.mean_diff, lo: r.ci95_low, hi: r.ci95_high, color: i < 2 ? COLOR.slateq : i < 4 ? COLOR.learned_myopic : COLOR.random }; })} />
       </ChartCard>
-      <Shows items={["With twice the training the learned click-chaser moves closer to the perfect one; by the rule fixed in advance this is consistent with under-training.", "SlateQ barely changes with more training and stays clearly ahead of both click-chasers, so the main RQ2 result holds."]} />
-      <NotShow>Two training budgets only. Most seeds still put the learned click-chaser behind, so under-training may not be the whole story.</NotShow>
+      <Shows items={["With twice the training the learned click-chaser gets closer to the perfect one.", "SlateQ does not change and still wins clearly."]} />
+      <NotShow>That under-training is the whole story: only two training lengths were tried.</NotShow>
     </>;
   },
 };
@@ -217,13 +212,13 @@ const E3: Finding = {
 /* ------------------------------------------------------------------ E4 */
 const E4: Finding = {
   id: "e4", kicker: "E4", explo: true, title: "The paper's own cascade", question: "The SlateQ paper used a milder top-down viewer model. Does the win come back?",
-  headline: (s) => { const g = gap(s, "phase6b", "E4: SlateQ - learned-myopic", N0, K0, "paper_cascade")!; return { value: sgn(g.mean_diff), unit: "SlateQ vs learned myopic, paper's cascade", verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
+  headline: (s) => { const g = gap(s, "phase6b", "E4: SlateQ - learned-myopic", N0, K0, "paper_cascade")!; return { value: sgn(g.mean_diff), unit: "under the SlateQ paper's cascade", verdict: <VerdictPill v={g.verdict} a="SlateQ" /> }; },
   Detail: ({ site }) => {
     const sev = gap(site, "rq3", PRIMARY, N0, K0, "severe_cascade")!;
     const pl = gap(site, "phase6b", "E4: SlateQ - learned-myopic", N0, K0, "paper_cascade")!, po = gap(site, "phase6b", "E4: SlateQ - oracle-myopic", N0, K0, "paper_cascade")!;
     const rnd = (c: string, sec: "rq3" | "phase6b") => agentRow(site, sec, "random", N0, K0, c)?.mean_total_reward;
     return <>
-      <ChartCard title="SlateQ advantage under two cascade viewer models" subtitle={`N = ${N0}, k = ${K0}; whiskers are 95% confidence intervals`}>
+      <ChartCard title="SlateQ's extra watch time under two top-down viewer models" subtitle={`${N0} candidates, ${K0} shown. Lines on the bars are 95% intervals.`}>
         <GapBars rows={[
           { label: "RecSim's cascade (RQ3)", sub: verdictShort(sev.verdict), mean: sev.mean_diff, lo: sev.ci95_low, hi: sev.ci95_high, color: COLOR.random },
           { label: "Paper's cascade: vs learned myopic", sub: verdictShort(pl.verdict), mean: pl.mean_diff, lo: pl.ci95_low, hi: pl.ci95_high, color: COLOR.slateq },
@@ -234,7 +229,7 @@ const E4: Finding = {
         <DL items={[["Viewers as assumed", <>Random recommender watch time {fmt(rnd("matched", "rq3"))}</>], ["Paper's cascade", <>Random recommender watch time {fmt(rnd("paper_cascade", "phase6b"))}</>], ["RecSim's cascade", <>Random recommender watch time {fmt(rnd("severe_cascade", "rq3"))}</>]]} />
         <p className="mt-3 text-[13px] text-muted">RecSim's cascade makes clicks rare; the paper's keeps them common, so quality can still extend sessions.</p>
       </Card>
-      <NotShow>Two cascades are two data points, and this is our implementation of the paper's description, not a numerical replication. It does not show SlateQ is robust to any wrong viewer model.</NotShow>
+      <NotShow>That SlateQ copes with any viewer behaviour. This is our implementation of the paper's description, not a copy of its numbers.</NotShow>
     </>;
   },
 };
@@ -253,7 +248,7 @@ function E5Detail({ site }: { site: Site }) {
     <div className="flex flex-wrap items-center gap-2">
       <label className="text-[12px] font-medium text-muted" htmlFor="e5-set">Setting</label>
       <select id="e5-set" className="input w-auto pr-8" value={key} onChange={(e) => setKey(e.target.value)}>
-        {conds.map(([kk, r]) => <option key={kk} value={kk}>{r.condition === "matched" ? `N = ${r.num_candidates}, k = ${r.slate_size}${r.control ? " (control)" : ""}` : RUNG[r.condition] ?? r.condition}</option>)}
+        {conds.map(([kk, r]) => <option key={kk} value={kk}>{r.condition === "matched" ? `${r.num_candidates} candidates, ${r.slate_size} shown${r.control ? " (control)" : ""}` : RUNG[r.condition] ?? r.condition}</option>)}
       </select>
       <div className="ml-auto"><Legend items={AGENTS.map((a) => ({ label: NAME[a], color: COLOR[a] }))} /></div>
     </div>
@@ -269,15 +264,15 @@ function E5Detail({ site }: { site: Site }) {
         <tbody className="divide-y divide-line">{[...pats.entries()].sort((a, b) => b[1] - a[1]).map(([kk, c]) => { const [cmp, p] = kk.split("|"); return <tr key={kk} className="hover:bg-hover-row"><td className="h-10 px-3 pl-4 whitespace-nowrap">{cmp.replace(" - ", " vs ")}</td><td className="px-3">{p}</td><td className="px-3 text-right tabular-nums">{c}</td></tr>; })}</tbody>
       </table></div>
     </div>
-    <Shows items={["The click-chasers and SlateQ get the same click rate per recommendation in almost every setting.", "The cost of chasing clicks shows up as shorter sessions: fewer videos watched and less watch time in total, not fewer clicks per recommendation.", "The motivating idea \"more clicks, less watch time\" appeared only rarely; it is reported as it came out."]} />
-    <NotShow>Nothing about real platforms. In this simulator every video has the same length, so watch time per click can hardly differ by design.</NotShow>
+    <Shows items={["All recommenders get about the same click rate.", "The click-chasers lose because sessions end sooner: fewer videos watched in total."]} />
+    <NotShow>Anything about real platforms. In this simulator every video has the same length.</NotShow>
   </>;
 }
 const E5: Finding = {
   id: "e5", kicker: "E5", explo: true, title: "Clicks vs watch time", question: "Does the click-chaser get more clicks but less watch time?",
   headline: (s) => { const o = clickRow(s, "oracle_myopic", 80, 3, "matched"), q = clickRow(s, "slateq", 80, 3, "matched");
     const g = s.phase6b.clicks_watch_gaps.filter((r) => r.comparison === "oracle-myopic - SlateQ");
-    return { value: `${fmt(o?.clicks_per_session, 1)} vs ${fmt(q?.clicks_per_session, 1)}`, unit: "videos per session: oracle myopic vs SlateQ, N = 80",
+    return { value: `${fmt(o?.clicks_per_session, 1)} vs ${fmt(q?.clicks_per_session, 1)}`, unit: "videos watched per session: click-chaser vs SlateQ",
       verdict: <Pill tone="neutral">Same click rate in {g.filter((r) => r.click_rate_verdict === "no clear difference").length} of {g.length} settings</Pill> }; },
   Detail: E5Detail,
 };

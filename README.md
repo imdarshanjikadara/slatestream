@@ -6,15 +6,17 @@ step by step, and every result with its confidence interval and pre-registered v
 
 ## Pages
 
+The sidebar lists the pages in reading order; each page ends with a button to the next one.
+
 | Page | What it shows |
 |---|---|
-| Overview | Headline numbers and the four charts that carry the study |
-| Watch side by side | One recorded viewer served by two recommenders: the slate on screen, what was watched, time budget, session history |
-| Watch-time race | The same viewer under all four recommenders, with the finishing order |
-| Taste profile | How the viewer's interest in each of the 20 topics changes during the session (level, or change since step 1) |
-| Findings | RQ1 to RQ3 and follow-ups E1 to E5: chart, table, what it shows and what it does not show |
-| All comparisons | Every paired comparison as one table: search, filter by verdict, export CSV |
-| How it works | The setup, the fair rules and the limits in plain words |
+| 1 Start | The question, the four headline results, two key charts |
+| 2 Watch a session | One recorded viewer under two recommenders, step by step |
+| 3 Compare all four | The same viewer under all four recommenders |
+| 4 Viewer tastes | How the viewer's interest in each of the 20 topics changes |
+| 5 Results | RQ1 to RQ3 and follow-ups E1 to E5: chart, table, what it shows and does not show |
+| All numbers | Every comparison as one table (search, download CSV) |
+| About the project | Setup, how results are judged, limits |
 
 ## Where the numbers come from
 

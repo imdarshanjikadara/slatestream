@@ -1,10 +1,11 @@
 // Watch-time race: the same recorded viewer under all four recommenders.
 import { AGENTS, COLOR, NAME, ROLE, fmt, topicName, useSite, useTraces } from "@/lib/data";
 import { useReplay } from "@/lib/replay";
-import { Card, ErrorState, Loading, Notice, PageHeader } from "@/components/common";
+import { Card, ErrorState, Loading, PageHeader } from "@/components/common";
 import { PlayerBar, ViewerPicker } from "@/components/Replay";
 import { Pill } from "@/components/Pill";
-import { HowTo, Steps, Term } from "@/components/Help";
+import { Hint, Term } from "@/components/Help";
+import { NextStep, StepLabel } from "@/components/Path";
 
 export default function Race() {
   const site = useSite();
@@ -20,18 +21,14 @@ export default function Race() {
   const order = [...ss].sort((p, q) => q.e.total - p.e.total);
   return (
     <div className="page">
-      <PageHeader title="Watch-time race" subtitle="Each lane is the same recorded viewer served by a different recommender. The marker moves with every unit of time watched; the thin bar under it is the time budget left. The session ends when the budget runs out.">
-        <ViewerPicker seeds={site.data.trace_seeds} caseSeed={site.data.case_study_seed} />
-      </PageHeader>
-      <HowTo id="race">
-        <Steps items={[
-          <>Each lane is the <b className="font-medium text-ink">same viewer</b> served by a different recommender.</>,
-          <>The dot moves right with every unit of <Term id="watch">watch time</Term>. The thin grey bar is the <Term id="budget">time budget</Term> left.</>,
-          <>Press <b className="font-medium text-ink">Play</b>. The line under each lane says what the viewer is doing.</>,
-          <>At the end the finishing order appears. Try other viewers with the arrows: the winner changes, the averages do not.</>,
-        ]} />
-      </HowTo>
-      <Card title="Lanes" count={`${AGENTS.length} recommenders`} bodyClass="">
+      <div>
+        <StepLabel to="/race" />
+        <PageHeader title="Compare all four" subtitle="The same viewer, served by each of the four recommenders.">
+          <ViewerPicker seeds={site.data.trace_seeds} caseSeed={site.data.case_study_seed} />
+        </PageHeader>
+      </div>
+      <Hint>Press <b className="font-medium">Play</b>. Each bar grows with <Term id="watch">watch time</Term>; the thin grey line under it is the <Term id="budget">time budget</Term> left. Try a few viewers: the winner changes, the averages on the Results page do not.</Hint>
+      <Card bodyClass="">
         <ul className="divide-y divide-line">
           {ss.map(({ a, e }) => {
             const ended = r.t >= e.len, i = Math.min(r.t, e.len - 1);
@@ -62,19 +59,19 @@ export default function Race() {
         </ul>
       </Card>
       {done && (
-        <Card title="Finish" count="this viewer only">
+        <Card title="Result for this viewer">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {order.map(({ a, e }, k) => (
               <div key={a} className="rise rounded-lg border border-line bg-surface-alt px-4 py-3" style={{ animationDelay: `${k * 60}ms` }}>
-                <div className="flex items-center justify-between"><span className="text-[12px] text-faint">#{k + 1}</span>{k === 0 && <Pill tone="success">Longest session</Pill>}</div>
+                <div className="flex items-center justify-between"><span className="text-[12px] text-faint">#{k + 1}</span>{k === 0 && <Pill tone="success">Most watch time</Pill>}</div>
                 <div className="mt-1 text-[13.5px] font-medium text-ink">{NAME[a]}</div>
                 <div className="text-[22px] font-medium tabular-nums tracking-tight">{fmt(e.total)}</div>
                 <div className="meta">{e.len} steps · {e.clicks} watched</div>
               </div>))}
           </div>
-          <Notice className="mt-3">This ranking is for one viewer. Some viewers favour a different recommender; the averages over all test viewers are on the Findings page.</Notice>
         </Card>)}
       <PlayerBar max={max} />
+      <NextStep to="/race" />
     </div>
   );
 }

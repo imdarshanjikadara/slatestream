@@ -4,7 +4,8 @@ import { AGENTS, COLOR, NAME, fmt, sgn, topicName, useSite, useTraces, type Sess
 import { useReplay } from "@/lib/replay";
 import { ErrorState, Loading, PageHeader, Tabs } from "@/components/common";
 import { PlayerBar, ViewerPicker } from "@/components/Replay";
-import { HowTo, Steps, Term } from "@/components/Help";
+import { Hint } from "@/components/Help";
+import { NextStep, StepLabel } from "@/components/Path";
 
 // Diverging scale: grey-blue (dislike) through near-white to blue (like).
 function color(v: number): [number, number, number] {
@@ -28,17 +29,13 @@ export default function Taste() {
   const val = (e: Session, x: number, y: number) => (mode === "abs" ? e.interests[x][y] : (e.interests[x][y] - e.interests[0][y]) / D);
   return (
     <div className="page">
-      <PageHeader title="Taste profile" subtitle="Rows are the 20 topics, columns are steps of the session. Blue means the viewer likes the topic, brown that they dislike it. Dots mark the topic watched at each step. What a recommender shows slowly changes what the viewer likes.">
-        <ViewerPicker seeds={site.data.trace_seeds} caseSeed={site.data.case_study_seed} />
-      </PageHeader>
-      <HowTo id="taste">
-        <Steps items={[
-          <>Each picture is one recommender. <b className="font-medium text-ink">Rows</b> are the 20 topics, <b className="font-medium text-ink">columns</b> are steps, left to right.</>,
-          <>Colour is the viewer's <Term id="taste">taste</Term>: blue likes, brown dislikes, white neutral.</>,
-          <>Dark dots mark the topic watched at each step. Watching a topic slowly changes the taste for it.</>,
-          <>Switch to <b className="font-medium text-ink">Change since step 1</b> to see small changes clearly, then press Play.</>,
-        ]} />
-      </HowTo>
+      <div>
+        <StepLabel to="/taste" />
+        <PageHeader title="Viewer tastes" subtitle="What a viewer watches slowly changes what they like.">
+          <ViewerPicker seeds={site.data.trace_seeds} caseSeed={site.data.case_study_seed} />
+        </PageHeader>
+      </div>
+      <Hint>Each picture is one recommender. Rows are the 20 topics, columns are steps. Blue = likes, brown = dislikes; dots mark what was watched. Switch to <b className="font-medium">Change since step 1</b> to see the drift.</Hint>
       <div className="flex flex-wrap items-center gap-3">
         <Tabs ariaLabel="Show" active={mode} onChange={(k) => setMode(k as "abs" | "delta")} items={[{ key: "abs", label: "Taste level" }, { key: "delta", label: "Change since step 1" }]} />
         <div className="flex items-center gap-2 text-[12px] text-faint">
@@ -51,6 +48,7 @@ export default function Taste() {
         {ss.map(({ a, e }) => <Heat key={a + mode + r.viewer} title={NAME[a]} dot={COLOR[a]} e={e} max={max} t={r.t} val={(x, y) => val(e, x, y)} />)}
       </div>
       <PlayerBar max={max} />
+      <NextStep to="/taste" />
     </div>
   );
 }
@@ -77,7 +75,7 @@ function Heat({ title, dot, e, max, t, val }: { title: string; dot: string; e: S
       <div className="mt-3 flex h-6 gap-0.5">
         {e.interests[i].map((v, k) => { const [r, g, b] = color(val(i, k)); return <span key={k} className="flex-1 rounded-[2px] border border-line" style={{ background: `rgb(${r | 0},${g | 0},${b | 0})` }} title={`${topicName(k)}: taste ${fmt(v)}, change ${sgn(v - e.interests[0][k])}`} />; })}
       </div>
-      <div className="meta mt-1">Taste right now, topic 01 to 20</div>
+      <div className="meta mt-1">Now: topics 01 to 20</div>
     </section>
   );
 }

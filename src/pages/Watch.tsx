@@ -1,11 +1,12 @@
 // Watch side by side: one recorded viewer, two recommenders, step by step.
 import { useState } from "react";
-import { AGENTS, CELL, NAME, PRIMARY, ROLE, COLOR, fmt, gap, sgn, pct, int, topicName, useSite, useTraces, type Agent, type Session, type Site } from "@/lib/data";
+import { AGENTS, CELL, NAME, PRIMARY, ROLE, COLOR, fmt, gap, sgn, int, topicName, useSite, useTraces, type Agent, type Session, type Site } from "@/lib/data";
 import { useReplay } from "@/lib/replay";
 import { ErrorState, Loading, Notice, PageHeader } from "@/components/common";
 import { BudgetMeter, Cover, History, PlayerBar, VideoTile, ViewerPicker } from "@/components/Replay";
 import { VerdictPill } from "@/components/Pill";
-import { HowTo, Steps, Term } from "@/components/Help";
+import { Hint, Term } from "@/components/Help";
+import { NextStep, StepLabel } from "@/components/Path";
 import { BookOpenText } from "lucide-react";
 
 export default function Watch() {
@@ -23,18 +24,14 @@ export default function Watch() {
   const g = gap(S, "rq2", PRIMARY, ...CELL)!;
   return (
     <div className="page">
-      <PageHeader title="Watch side by side"
-        subtitle={<>The same recorded viewer served by two recommenders. Each step shows the {CELL[1]} videos put on screen out of {CELL[0]} candidates, which one was watched and the viewer's time budget. Over all {int(S.frozen.eval_episodes)} test viewers, SlateQ adds {sgn(g.mean_diff)} watch time per session over the learned click-chaser ({pct(g.relative_to_b)}); single viewers vary.</>}>
-        <ViewerPicker seeds={S.trace_seeds} caseSeed={S.case_study_seed} />
-      </PageHeader>
-      <HowTo id="watch">
-        <Steps items={[
-          <>Press <b className="font-medium text-ink">Play</b> (or the space bar). Each step, each recommender puts a <Term id="slate">slate</Term> of {CELL[1]} videos on screen.</>,
-          <>The card with the dark outline is the one the viewer <b className="font-medium text-ink">watched</b>. Sometimes they skip all three.</>,
-          <>Green <Term id="quality">quality</Term> gives the viewer time back; red costs extra. Watch the <Term id="budget">time budget</Term> bar.</>,
-          <>Read <b className="font-medium text-ink">What just happened</b> below. When both sessions end, the winner for this viewer is shown.</>,
-        ]} />
-      </HowTo>
+      <div>
+        <StepLabel to="/watch" />
+        <PageHeader title="Watch a session"
+          subtitle={<>One recorded viewer, served by two recommenders. Over all {int(S.frozen.eval_episodes)} test viewers SlateQ gets {sgn(g.mean_diff)} more watch time per session; single viewers vary.</>}>
+          <ViewerPicker seeds={S.trace_seeds} caseSeed={S.case_study_seed} />
+        </PageHeader>
+      </div>
+      <Hint>Press <b className="font-medium">Play</b>. Each step shows the <Term id="slate">slate</Term>; the outlined video is the one watched. Green <Term id="quality">quality</Term> gives time back, red costs extra, and the session ends when the <Term id="budget">time budget</Term> runs out.</Hint>
       <div className="grid gap-4 lg:grid-cols-2">
         <Pane agent={a} onAgent={setA} e={A} max={max} bmax={bmax} />
         <Pane agent={b} onAgent={setB} e={B} max={max} bmax={bmax} />
@@ -42,6 +39,7 @@ export default function Watch() {
       <Story a={a} b={b} A={A} B={B} />
       {r.t >= max && <Outcome site={S} a={a} b={b} A={A} B={B} />}
       <PlayerBar max={max} />
+      <NextStep to="/watch" />
     </div>
   );
 }
@@ -121,7 +119,7 @@ function Outcome({ site, a, b, A, B }: { site: Site; a: Agent; b: Agent; A: Sess
       <div className="min-w-0 flex-1 basis-80">
         <div className="text-[14px] text-ink">{Math.abs(d) < 1e-9 ? <>Tie: both gave this viewer <b>{fmt(A.total)}</b> watch time.</>
           : <><b>{NAME[win]}</b> kept this viewer watching <b className="text-data">{fmt(Math.abs(d))}</b> longer than {NAME[lose]} ({fmt(Math.max(A.total, B.total))} vs {fmt(Math.min(A.total, B.total))}).</>}</div>
-        <div className="meta mt-0.5">{avg ? <>Average over all test viewers and 5 seeds: {NAME[a]} − {NAME[b]} = {sgn(flip ? -avg.mean_diff : avg.mean_diff)} per session. One viewer is an example; the averages are the evidence.</> : "One viewer is an example; the averages on the Findings page are the evidence."}</div>
+        <div className="meta mt-0.5">{avg ? <>Average over all test viewers: {NAME[a]} − {NAME[b]} = {sgn(flip ? -avg.mean_diff : avg.mean_diff)} per session. One viewer is only an example.</> : "One viewer is an example; the averages on the Findings page are the evidence."}</div>
       </div>
       {avg && <VerdictPill v={flip ? (avg.verdict === "A higher" ? "A lower" : avg.verdict === "A lower" ? "A higher" : avg.verdict) : avg.verdict} a={NAME[a]} />}
     </div>
@@ -130,12 +128,12 @@ function Outcome({ site, a, b, A, B }: { site: Site; a: Agent; b: Agent; A: Sess
 
 /* ------------------------------------------------------------------ narrator: what just happened, in words */
 function describe(name: string, e: Session, t: number): { text: React.ReactNode; tone: "good" | "bad" | "skip" | "end" } {
-  if (t >= e.len) return { tone: "end", text: <><b className="font-medium text-ink">{name}</b>: the viewer has left after {e.len} steps with {fmt(e.total)} watch time.</> };
+  const who = <b className="font-medium text-ink">{name}</b>;
+  if (t >= e.len) return { tone: "end", text: <>{who}: session over after {e.len} steps, {fmt(e.total)} watch time.</> };
   const c = e.clicked[t];
-  const shown = e.clusters[t].map(topicName).join(", ");
-  if (c < 0) return { tone: "skip", text: <><b className="font-medium text-ink">{name}</b> showed {shown}. The viewer skipped all of them: no watch time, and a little of the time budget is gone.</> };
-  const q = e.quality[t][c], topic = e.clusters[t][c];
-  return { tone: q >= 0 ? "good" : "bad", text: <><b className="font-medium text-ink">{name}</b> showed {shown}. The viewer watched <b className="font-medium text-ink">{topicName(topic)}</b> (their taste for it: {fmt(e.interests[t][topic])}) and gained {fmt(e.reward[t])} watch time. Its quality is {fmt(q)}, so it {q >= 0 ? "gave some time back" : "used extra time"}.</> };
+  if (c < 0) return { tone: "skip", text: <>{who}: the viewer skipped all {e.clusters[t].length} videos. No watch time; a little budget lost.</> };
+  const q = e.quality[t][c];
+  return { tone: q >= 0 ? "good" : "bad", text: <>{who}: watched {topicName(e.clusters[t][c])}, +{fmt(e.reward[t])} watch time. Quality {fmt(q)}, so it {q >= 0 ? "gave time back" : "used extra time"}.</> };
 }
 const DOT = { good: "bg-success-fill", bad: "bg-danger-fill", skip: "bg-line-hover", end: "bg-primary" };
 
@@ -145,11 +143,10 @@ function Story({ a, b, A, B }: { a: Agent; b: Agent; A: Session; B: Session }) {
   const da = describe(NAME[a], A, t), db = describe(NAME[b], B, t);
   const ia = Math.min(t, A.len - 1), ib = Math.min(t, B.len - 1);
   const ca = t >= A.len ? A.total : A.cum[ia], cb = t >= B.len ? B.total : B.cum[ib];
-  const ba = t >= A.len ? 0 : A.budget[ia], bb = t >= B.len ? 0 : B.budget[ib];
   const lead = Math.abs(ca - cb) < 1e-9 ? "Both have the same watch time so far." : `${ca > cb ? NAME[a] : NAME[b]} is ahead by ${fmt(Math.abs(ca - cb))} watch time so far.`;
-  const tip = da.tone === "good" || db.tone === "good" ? "Good-quality videos refund time, so the session lasts longer. Choosing them is what planning ahead buys."
-    : da.tone === "bad" || db.tone === "bad" ? "A poor-quality video still earns watch time now, but it shortens the session. A click-chaser does not see this cost; a planner does."
-    : da.tone === "skip" && db.tone === "skip" ? "Skips happen when nothing on screen matches the viewer's taste well."
+  const tip = da.tone === "good" || db.tone === "good" ? "Good-quality videos give time back, so the session lasts longer. That is what planning ahead buys."
+    : da.tone === "bad" || db.tone === "bad" ? "A poor video still earns watch time now, but shortens the session. A click-chaser ignores this cost."
+    : da.tone === "skip" && db.tone === "skip" ? "Skips happen when nothing shown matches the viewer's taste."
     : "Keep watching: the difference builds up over many steps.";
   return (
     <section className="card" aria-live="polite">
@@ -159,7 +156,6 @@ function Story({ a, b, A, B }: { a: Agent; b: Agent; A: Session; B: Session }) {
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-alt px-4 py-2.5 text-[12.5px]">
         <span className="font-medium text-ink">{lead}</span>
-        <span className="text-faint">Time budget left: {NAME[a]} {fmt(Math.max(0, ba), 1)}, {NAME[b]} {fmt(Math.max(0, bb), 1)}</span>
         <span className="basis-full text-info">Why it matters: {tip}</span>
       </div>
     </section>

@@ -7,9 +7,9 @@ export type Agent = "slateq" | "learned_myopic" | "oracle_myopic" | "random";
 export const AGENTS: Agent[] = ["slateq", "learned_myopic", "oracle_myopic", "random"];
 export const NAME: Record<Agent, string> = { slateq: "SlateQ", learned_myopic: "Learned myopic", oracle_myopic: "Oracle myopic", random: "Random" };
 export const ROLE: Record<Agent, string> = {
-  slateq: "Plans ahead for the whole session (γ = 0.99)",
-  learned_myopic: "Learns to chase the next click (same network, γ = 0)",
-  oracle_myopic: "Perfect click-chaser: is given the exact click model",
+  slateq: "Plans for the whole session (γ = 0.99)",
+  learned_myopic: "Same model, but only looks at the next click (γ = 0)",
+  oracle_myopic: "Given the exact click model; the best click-chaser",
   random: "Shows random videos",
 };
 /** Data colours: blue for the method under study, neutrals for the baselines (reference: "colour for data, neutral for the rest"). */
@@ -20,11 +20,11 @@ export const VS_ORACLE = "SlateQ - oracle-myopic";
 export const CELL: [number, number] = [10, 3];
 export const RUNGS = ["matched", "mild_noclick3", "moderate_logit", "severe_cascade"] as const;
 export const RUNG: Record<string, string> = {
-  matched: "Users behave as assumed",
-  mild_noclick3: "Mild: users skip more",
-  moderate_logit: "Moderate: different choice formula",
-  severe_cascade: "Severe: users scan top-down (RecSim cascade)",
-  paper_cascade: "SlateQ paper's cascade",
+  matched: "As SlateQ assumes",
+  mild_noclick3: "Skip more often",
+  moderate_logit: "Different click formula",
+  severe_cascade: "Scan top-down (RecSim cascade)",
+  paper_cascade: "Scan top-down (SlateQ paper)",
 };
 
 export type Verdict = "A higher" | "A lower" | "no clear difference" | string;

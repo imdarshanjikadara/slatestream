@@ -22,4 +22,4 @@ export function verdictShort(v: Verdict | undefined) {
   return v === "A higher" ? "clear, higher" : v === "A lower" ? "clear, lower" : v === "no clear difference" ? "no clear difference" : String(v ?? "-");
 }
 
-export const Exploratory = () => <Pill tone="warning" title="Planned after the main results were seen; registered before its own runs.">Exploratory</Pill>;
+export const Exploratory = () => <Pill tone="warning" title="Planned after the main results were seen.">Follow-up</Pill>;
